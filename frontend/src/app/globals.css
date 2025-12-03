@@ -1,29 +1,20 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
-/* Increase base font-size so rem-based Tailwind sizes are larger by default.
-	 Adjust this value if you prefer slightly bigger/smaller text. */
 html {
-	font-size: 18px; /* default: 16px — set to 18px for larger text */
+	font-size: 18px; 
+	scroll-behavior: smooth;
 }
 
-/* Keep a slightly smaller base on very small screens for better fit */
 @media (max-width: 480px) {
 	html {
 		font-size: 16px;
 	}
 }
 
-/* Enable smooth scrolling for anchor links and programmatic scrolls,
-	 but respect users who prefer reduced motion. */
-html {
-	-webkit-overflow-scrolling: touch;
-	scroll-behavior: smooth;
-}
-
 @media (prefers-reduced-motion: reduce) {
-	html {
-		scroll-behavior: auto !important;
-	}
+  html {
+    scroll-behavior: auto;
+  }
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
