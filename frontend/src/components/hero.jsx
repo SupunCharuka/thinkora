@@ -12,6 +12,14 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
 
   const visibleSlides = slides.slice(0, 4);
 
+  // ensure each visible slide has a stable image and thumbnail URL
+  const slidesWithImages = visibleSlides.map((s, i) => {
+    const seed = s.slug || i;
+    const image = s.image || `https://picsum.photos/seed/${encodeURIComponent(seed)}/1600/900`;
+    const thumb = s.imageThumb || s.image || `https://picsum.photos/seed/${encodeURIComponent(seed)}/200/160`;
+    return { ...s, __image: image, __thumb: thumb };
+  });
+
   useEffect(() => {
     if (!autoplay || visibleSlides.length === 0) return undefined;
 
@@ -34,7 +42,7 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
     setIndex((i) => (i + 1) % visibleSlides.length);
   }
 
-  const current = visibleSlides[index] || {};
+  const current = slidesWithImages[index] || {};
 
   // animate content when index changes: briefly reset visibility then show
   useEffect(() => {
@@ -62,19 +70,19 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
             <div
               className="h-full flex"
               style={{
-                width: `${visibleSlides.length * 100}%`,
-                transform: `translate3d(-${index * (100 / Math.max(1, visibleSlides.length))}%,0,0)`,
+                width: `${slidesWithImages.length * 100}%`,
+                transform: `translate3d(-${index * (100 / Math.max(1, slidesWithImages.length))}%,0,0)`,
                 transition: `transform ${animationDuration}ms cubic-bezier(0.22,1,0.36,1)`,
                 willChange: 'transform',
               }}
             >
-              {visibleSlides.map((s, i) => (
+              {slidesWithImages.map((s, i) => (
                 <div
                   key={s.slug || i}
                   className="h-full flex-none bg-cover bg-center"
                   style={{
-                    width: `${100 / Math.max(1, visibleSlides.length)}%`,
-                    backgroundImage: `url(${s.image || `https://picsum.photos/1600/900?random=${i + 1}`})`,
+                    width: `${100 / Math.max(1, slidesWithImages.length)}%`,
+                    backgroundImage: `url(${s.__image})`,
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
                   }}
@@ -84,12 +92,12 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
           ) : (
             // fade: render all slides stacked and animate opacity
             <>
-              {visibleSlides.map((s, i) => (
+              {slidesWithImages.map((s, i) => (
                 <div
                   key={s.slug || i}
                   className="absolute inset-0 h-full bg-cover bg-center"
                   style={{
-                    backgroundImage: `url(${s.image || `https://picsum.photos/1600/900?random=${i + 1}`})`,
+                    backgroundImage: `url(${s.__image})`,
                     opacity: i === index ? 1 : 0,
                     transition: `opacity ${animationDuration}ms ease`,
                   }}
@@ -120,7 +128,7 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
 
           <aside className="md:col-span-2 pl-0 md:pl-6 mt-6 md:mt-0 mb-6 md:mb-0">
             <div className="bg-white/5 backdrop-blur rounded-xl p-3 md:p-4 space-y-3 mb-6 md:mb-0">
-              {visibleSlides.map((r, i) => {
+              {slidesWithImages.map((r, i) => {
                 const isActive = i === index;
                 return (
                   <Link
@@ -132,7 +140,7 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
                     className={`flex items-center gap-3 p-2 rounded-md transition-transform transition-shadow ${isActive ? 'bg-white/10 scale-105 shadow-lg' : 'hover:bg-white/5'}`}
                   >
                     <div className={`h-12 w-12 md:h-16 md:w-16 rounded-md overflow-hidden flex-shrink-0 bg-slate-400 ${isActive ? 'ring-2 ring-white/30' : ''}`}>
-                      <img src={r.image || `https://picsum.photos/200/160?random=${i + 2}`} alt="thumb" className="h-full w-full object-cover" />
+                      <img src={r.__thumb} alt="thumb" className="h-full w-full object-cover" />
                     </div>
                     <div className="text-white">
                       <div className="font-semibold text-sm md:text-base">{r.title}</div>
