@@ -1,11 +1,14 @@
 import posts from '@/data/posts';
 import Link from 'next/link';
 import Hero from '@/components/hero';
+import Trending from '@/components/trending';
 
 export default function Home() {
   return (
     <div className="container mx-auto py-2">
       <Hero posts={posts} />
+
+      <Trending />
 
       <section className="px-6 max-w-4xl mx-auto">
         <h2 className="text-2xl font-bold mb-6">Latest Posts</h2>
