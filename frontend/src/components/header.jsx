@@ -20,7 +20,7 @@ export default function Header() {
 
   return (
     <header className={`py-6 transition-all duration-300 ${scrolled ? 'sticky top-0 z-40 py-2' : ''}`}>
-      <div className="mx-auto container px-4">
+      <div className="max-w-7xl mx-auto container px-4">
         <div className={`relative px-6 py-3 flex items-center justify-between transition-all duration-300 ${scrolled ? 'bg-white/60 backdrop-blur-sm shadow-sm rounded-xl' : 'bg-white rounded-2xl shadow-md'}`}>
           {/* Left: Logo */}
           <Link href="/" className="inline-flex items-center gap-2">
