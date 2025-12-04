@@ -1,8 +1,8 @@
 "use client";
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
 import posts from '@/data/posts';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Latest() {
     const sampleImages = [
@@ -58,8 +58,36 @@ export default function Latest() {
         return pages;
     };
 
+    const ref = useRef(null);
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+
+        const obs = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        setVisible(true);
+                        obs.unobserve(el);
+                    }
+                });
+            },
+            { threshold: 0.15 }
+        );
+
+        obs.observe(el);
+        return () => obs.disconnect();
+    }, []);
+
+
     return (
-        <section className="mt-10">
+        <section
+            ref={ref}
+            className={`mt-10 transform transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+                }`}
+        >
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-3xl font-bold">Latest articles</h2>
@@ -71,7 +99,7 @@ export default function Latest() {
                 {/* Main grid */}
                 <div className="lg:col-span-2">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        {posts.concat(posts).slice(0,8).map((post, idx) => {
+                        {posts.concat(posts).slice(0, 8).map((post, idx) => {
                             const author = authors[idx % authors.length];
                             return (
                                 <article key={post.slug + idx} className="relative rounded-2xl overflow-visible shadow-md group hover:shadow-xl transform transition-all duration-300 hover:scale-[1.01]">
