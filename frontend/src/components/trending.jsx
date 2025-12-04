@@ -1,8 +1,39 @@
+"use client";
+
 import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Trending() {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisible(true);
+            obs.unobserve(el);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   return (
-    <section >
+    <section
+      ref={ref}
+      className={`transform transition-all duration-700 ease-out ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+      }`}
+    >
       <div className="bg-white rounded-2xl shadow-md p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -32,6 +63,9 @@ export default function Trending() {
           </div>
         </div>
       </div>
+
+      
+      
     </section>
   );
 }

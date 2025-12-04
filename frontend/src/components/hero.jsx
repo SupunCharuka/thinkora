@@ -153,24 +153,7 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
           </aside>
         </div>
 
-        {/* Prev / Next controls (render only if showArrows is true) */}
-        {showArrows && (
-          <>
-            <button onClick={goPrev} aria-label="Previous" className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 text-white rounded-full p-2">
-              ‹
-            </button>
-            <button onClick={goNext} aria-label="Next" className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 text-white rounded-full p-2">
-              ›
-            </button>
-          </>
-        )}
-
-        {/* Indicators */}
-        <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
-          {visibleSlides.map((_, i) => (
-            <button key={i} onClick={() => setIndex(i)} aria-label={`Go to slide ${i + 1}`} className={`h-3 w-3 rounded-full ${i === index ? 'bg-white/90' : 'bg-white/40'}`} />
-          ))}
-        </div>
+     
       </div>
     </section>
   );
