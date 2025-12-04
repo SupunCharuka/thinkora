@@ -85,7 +85,7 @@ export default function Latest() {
     return (
         <section
             ref={ref}
-            className={`mt-10 transform transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            className={`mt-6 transform transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                 }`}
         >
             <div className="flex items-center justify-between">

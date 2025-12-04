@@ -42,7 +42,7 @@ export default function MostViewed() {
     return (
         <section
             ref={ref}
-            className={`mt-12 transform transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            className={`mt-6 transform transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                 }`}
         >
 
@@ -116,7 +116,7 @@ export default function MostViewed() {
                 </div>
             </div>
 
-            <div className="mt-8 flex justify-center">
+            <div className="mt-4 flex justify-center">
                 <Link
                     href="/trending"
                     aria-label="Show more trending articles"

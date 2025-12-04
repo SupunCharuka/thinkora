@@ -152,7 +152,7 @@ export default function Trending() {
         </div>
       </div>
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-4 flex justify-center">
         <Link
           href="/trending"
           aria-label="Show more trending articles"
