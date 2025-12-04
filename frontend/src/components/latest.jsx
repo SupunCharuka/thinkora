@@ -25,7 +25,6 @@ export default function Latest() {
         { name: 'Finance', count: 22 },
     ];
 
-    const tags = ['Garden', 'Technology', 'Fitness', 'Finance', 'Travel', 'Photography'];
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(2);
@@ -71,32 +70,40 @@ export default function Latest() {
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main grid */}
                 <div className="lg:col-span-2">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {posts.concat(posts).slice(0, 8).map((post, idx) => (
-                            <article key={post.slug + idx} className="relative rounded-2xl overflow-hidden shadow-md group hover:shadow-xl transform transition-all duration-300 hover:scale-[1.03]">
-                                <Link href={`/posts/${post.slug}`} className="block">
-                                    <div className="w-full h-52 relative">
-                                        <Image
-                                            src={sampleImages[idx % sampleImages.length]}
-                                            alt={post.title}
-                                            fill
-                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                        />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        {posts.concat(posts).slice(0,8).map((post, idx) => {
+                            const author = authors[idx % authors.length];
+                            return (
+                                <article key={post.slug + idx} className="relative rounded-2xl overflow-visible shadow-md group hover:shadow-xl transform transition-all duration-300 hover:scale-[1.01]">
+                                    <Link href={`/posts/${post.slug}`} className="block">
+                                        <div className="w-full h-80 relative rounded-2xl overflow-hidden">
+                                            <Image
+                                                src={sampleImages[idx % sampleImages.length]}
+                                                alt={post.title}
+                                                fill
+                                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                            />
 
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                                            {/* White info panel overlapping bottom */}
+                                            <div className="absolute bottom-4 left-4 right-4">
+                                                <div className="bg-white backdrop-blur rounded-2xl p-4 shadow-lg">
+                                                    <span className="inline-block bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">{post.category}</span>
+                                                    <h3 className="mt-3 text-lg font-semibold text-gray-900 leading-snug">{post.title}</h3>
 
-                                        <div className="absolute top-4 left-4">
-                                            <span className="inline-block bg-white/90 text-xs text-blue-700 px-3 py-1 rounded-full font-medium">{post.category}</span>
+                                                    <div className="mt-4 flex items-center gap-3">
+                                                        <Image src={author.avatar} alt={author.name} width={40} height={40} className="rounded-full object-cover" />
+                                                        <div>
+                                                            <div className="text-sm font-medium text-gray-800">{author.name}</div>
+                                                            <div className="text-xs text-gray-500">{post.date} · 2 min read</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-
-                                        <div className="absolute bottom-4 left-4 right-4">
-                                            <h3 className="text-white text-lg font-semibold leading-tight">{post.title}</h3>
-                                            <p className="text-sm text-white/90 mt-2">Admin · {post.date} · 3 min read</p>
-                                        </div>
-                                    </div>
-                                </Link>
-                            </article>
-                        ))}
+                                    </Link>
+                                </article>
+                            );
+                        })}
                     </div>
 
                     <div className="mt-8">
