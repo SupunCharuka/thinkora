@@ -41,7 +41,7 @@ export default function Trending() {
               
 
               <div>
-                <h3 className="text-xl font-semibold">Top Trending</h3>
+                <h3 className="text-3xl font-bold">Top Trending</h3>
                 <p className="text-sm text-gray-500">Today's Most Popular Stories</p>
               </div>
             </div>
