@@ -62,7 +62,7 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
       <div
         onMouseEnter={() => (isPaused.current = true)}
         onMouseLeave={() => (isPaused.current = false)}
-        className="md:h-[660px] w-full relative overflow-hidden"
+        className="h-64 md:h-[660px] w-full relative overflow-hidden"
       >
         {/* Slides layer (z-0) */}
         <div className="absolute inset-0 z-0">
@@ -83,6 +83,7 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
                   style={{
                     width: `${100 / Math.max(1, slidesWithImages.length)}%`,
                     backgroundImage: `url(${s.__image})`,
+                    backgroundPosition: 'center center',
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
                   }}
@@ -98,6 +99,7 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
                   className="absolute inset-0 h-full bg-cover bg-center"
                   style={{
                     backgroundImage: `url(${s.__image})`,
+                    backgroundPosition: 'center center',
                     opacity: i === index ? 1 : 0,
                     transition: `opacity ${animationDuration}ms ease`,
                   }}
@@ -126,12 +128,12 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
             </div>
           </div>
 
-          <aside className="md:col-span-2 pl-0 md:pl-6 mt-6 md:mt-0 mb-6 md:mb-0">
-            <div className="bg-white/5 backdrop-blur rounded-xl p-3 md:p-4 space-y-3 mb-6 md:mb-0">
+          <aside className="hidden md:block md:col-span-2 pl-0 md:pl-6 mt-6 md:mt-0 mb-6 md:mb-0">
+                <div className="bg-white/5 backdrop-blur rounded-xl p-3 md:p-4 space-y-3 mb-6 md:mb-0">
               {slidesWithImages.map((r, i) => {
                 const isActive = i === index;
                 return (
-                  <Link
+                    <Link
                     key={r.slug || i}
                     href={r.slug ? `/posts/${r.slug}` : '#'}
                     onMouseEnter={() => setIndex(i)}
@@ -140,7 +142,7 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
                     className={`flex items-center gap-3 p-2 rounded-md transition-transform transition-shadow ${isActive ? 'bg-white/10 scale-105 shadow-lg' : 'hover:bg-white/5'}`}
                   >
                     <div className={`h-12 w-12 md:h-16 md:w-16 rounded-md overflow-hidden flex-shrink-0 bg-slate-400 ${isActive ? 'ring-2 ring-white/30' : ''}`}>
-                      <img src={r.__thumb} alt="thumb" className="h-full w-full object-cover" />
+                      <img src={r.__thumb} alt="thumb" className="h-full w-full object-cover object-center" />
                     </div>
                     <div className="text-white">
                       <div className="font-semibold text-sm md:text-base">{r.title}</div>
