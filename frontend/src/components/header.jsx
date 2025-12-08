@@ -41,7 +41,7 @@ export default function Header() {
             </div>
 
             <div className="flex items-center gap-2 group">
-              <Link href="/features" className="hover:text-black">Features</Link>
+              <Link href="/posts" className="hover:text-black">Posts</Link>
               <svg className="w-3 h-3 text-gray-400 group-hover:text-gray-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.584l3.71-4.354a.75.75 0 111.14.976l-4.25 5a.75.75 0 01-1.14 0l-4.25-5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
               </svg>

@@ -102,9 +102,9 @@ export default function Latest() {
                         {posts.concat(posts).slice(0, 8).map((post, idx) => {
                             const author = authors[idx % authors.length];
                             return (
-                                <article key={post.slug + idx} className="relative rounded-2xl overflow-visible shadow-md group hover:shadow-xl transform transition-all duration-300 hover:scale-[1.01]">
+                                <article key={post.slug + idx} className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105">
                                     <Link href={`/posts/${post.slug}`} className="block">
-                                        <div className="w-full h-80 relative rounded-2xl overflow-hidden">
+                                        <div className="w-full h-[420px] relative rounded-lg overflow-hidden bg-gray-100">
                                             <Image
                                                 src={sampleImages[idx % sampleImages.length]}
                                                 alt={post.title}
@@ -112,21 +112,38 @@ export default function Latest() {
                                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                                             />
 
-                                            {/* White info panel overlapping bottom */}
-                                            <div className="absolute bottom-4 left-4 right-4">
-                                                <div className="bg-white backdrop-blur rounded-2xl p-4 shadow-lg">
-                                                    <span className="inline-block bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">{post.category}</span>
-                                                    <h3 className="mt-3 text-lg font-semibold text-gray-900 leading-snug">{post.title}</h3>
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-colors duration-300 group-hover:from-black/80" />
 
-                                                    <div className="mt-4 flex items-center gap-3">
-                                                        <Image src={author.avatar} alt={author.name} width={40} height={40} className="rounded-full object-cover" />
-                                                        <div>
-                                                            <div className="text-sm font-medium text-gray-800">{author.name}</div>
-                                                            <div className="text-xs text-gray-500">{post.date} · 2 min read</div>
-                                                        </div>
-                                                    </div>
+                                            <div className="absolute top-4 left-4">
+                                                <span className="inline-flex items-center gap-2 bg-yellow-300 text-black text-xs px-3 py-1 rounded-full font-semibold shadow-sm">
+                                                    <span className="w-2 h-2 rounded-full bg-black inline-block" />
+                                                    {post.category}
+                                                </span>
+                                            </div>
+
+                                            <div className="absolute top-4 right-4">
+                                                <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                                                 </div>
                                             </div>
+
+                                            <div className="absolute bottom-6 left-4 right-4">
+                                                <h3 className="text-white text-2xl sm:text-xl font-bold leading-tight drop-shadow-lg transition-all duration-300 group-hover:-translate-y-1">
+                                                    <span className="inline-block">{post.title}</span>
+                                                    <span className="block h-[2px] bg-white transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mt-2" aria-hidden="true" />
+                                                </h3>
+                                                <p className="text-sm text-white/90 mt-2 drop-shadow-sm opacity-95">{author.name} · {post.date}</p>
+                                            </div>
+
+                                            {post.isVideo && (
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                    <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110">
+                                                        <svg className="w-6 h-6 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                                            <path d="M5 3v18l15-9L5 3z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </Link>
                                 </article>

@@ -1,19 +1,18 @@
 "use client";
 
-import React, {useState} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+
 
 const posts = [
 	{
 		id: 1,
 		title: 'Beachmaster Elephant Seal Fights off Rival Male, The match is uncompromising',
-		category: ['Travel','Animal'],
+		category: ['Travel'],
 		date: '20 minutes ago',
 		read: '23k Views',
 		image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80',
-		excerpt: 'A short excerpt for the hero post to give readers a preview.'
 	},
 	{
 		id: 2,
@@ -71,42 +70,17 @@ const posts = [
 		read: '12k Views',
 		image: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=800&q=80'
 	},
-	
+
 ];
 
 
 
-function PostCard({post, variant = 'large'}){
-	const router = useRouter();
-	const [favorited, setFavorited] = useState(false);
-
-	function goToPost(){
-		router.push(`/posts/${post.id}`);
-	}
-
-	function toggleFavorite(e){
-		// prevent triggering navigation when clicking the ribbon
-		e.stopPropagation();
-		setFavorited(v => !v);
-	}
-	if(variant === 'compact'){
-		return (
-			<article className="group flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
-				<Link href={`/posts/${post.id}`} className="relative w-36 h-24 rounded overflow-hidden flex-shrink-0">
-					<Image src={post.image} alt={post.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
-				</Link>
-				<div>
-					<div className="text-xs text-amber-500 font-bold mb-1">{post.category?.[0]}</div>
-					<h3 className="text-lg font-semibold text-gray-900 transition-colors duration-200 group-hover:text-blue-600">{post.title}</h3>
-					<div className="text-sm text-gray-500 mt-2">{post.date} · {post.read}</div>
-				</div>
-			</article>
-		);
-	}
+function PostCard({ post }) {
 
 	return (
-		<article onClick={goToPost} onKeyDown={(e)=>{ if(e.key==='Enter') goToPost(); }} role="button" tabIndex={0} className="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer">
-			<div className="block relative h-[420px] md:h-[420px] overflow-hidden">
+		<article className="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer">
+			<Link href={`/posts/${post.id}`} className="absolute inset-0 z-10" aria-label={post.title} />
+			<div className="block relative h-[420px] md:h-[420px] overflow-hidden bg-gray-100 rounded-lg">
 				<Image src={post.image} alt={post.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
 			</div>
 			<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 group-hover:from-black/80"></div>
@@ -118,16 +92,17 @@ function PostCard({post, variant = 'large'}){
 				</span>
 			</div>
 
-			<div className="absolute top-0 right-0">
-				<div className="relative">
-					<button onClick={toggleFavorite} aria-pressed={favorited} className="w-12 h-12 bg-blue-600 rounded-bl-lg transform rotate-0 translate-x-3 -translate-y-3 shadow-md flex items-center justify-center focus:outline-none" title={favorited ? 'Unfavorite' : 'Add to favorites'}>
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className={`w-4 h-4 text-white -rotate-45 ${favorited ? 'opacity-100' : 'opacity-90'}`} fill="currentColor"><path d="M12 .587l3.668 7.431L24 9.748l-6 5.854L19.335 24 12 19.771 4.665 24 6 15.602 0 9.748l8.332-1.73z"/></svg>
-					</button>
+			<div className="absolute top-4 right-4">
+				<div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+					<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg>
 				</div>
 			</div>
 
 			<div className="absolute left-5 bottom-5 right-5 text-white">
-				<h3 className="text-lg md:text-2xl font-bold leading-tight mb-2 transition-transform duration-300 group-hover:-translate-y-1">{post.title}</h3>
+				<h3 className="text-white text-2xl sm:text-xl font-bold leading-tight drop-shadow-lg mb-2 transition-all duration-300 group-hover:-translate-y-1">
+					<span className="inline-block">{post.title}</span>
+					<span className="block h-[2px] bg-white transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mt-2" aria-hidden="true" />
+				</h3>
 				<div className="text-sm text-white/80">by Author · {post.date}</div>
 				{post.excerpt && (
 					<p className="mt-2 text-sm text-white/90 max-w-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">{post.excerpt}</p>
@@ -137,7 +112,7 @@ function PostCard({post, variant = 'large'}){
 	);
 }
 
-export default function PostsPage(){
+export default function PostsPage() {
 	const hero = posts[0];
 	const others = posts.slice(1);
 
@@ -145,40 +120,72 @@ export default function PostsPage(){
 	const filterOptions = ['All post', ...categories];
 	const [activeFilter, setActiveFilter] = useState('All post');
 
-	const gridPosts = others.slice(2).filter(p => {
+	// include all posts so the grid shows the first post as well
+	const gridPosts = posts.filter(p => {
 		if (activeFilter === 'All post') return true;
 		return p.category?.includes(activeFilter);
 	});
 
+	// Reveal-on-scroll for the posts grid using IntersectionObserver
+	const sectionRef = useRef(null);
+	const [sectionVisible, setSectionVisible] = useState(false);
+
+	useEffect(() => {
+		if (!sectionRef.current) return;
+		const obs = new IntersectionObserver(
+			(entries) => {
+				entries.forEach(entry => {
+					if (entry.isIntersecting) {
+						setSectionVisible(true);
+						obs.unobserve(entry.target);
+					}
+				});
+			},
+			{ threshold: 0.12 }
+		);
+
+		obs.observe(sectionRef.current);
+		return () => obs.disconnect();
+	}, []);
+
 	return (
-		<main className="px-6 py-8 max-w-[1200px] mx-auto">
+		<main className="mx-auto">
 
 			<div className="mb-6 flex items-center gap-4">
 				<div className="text-sm text-gray-500">Show me:</div>
 				<div className="flex items-center gap-3">
 					{filterOptions.map(opt => (
-						<button key={opt} onClick={() => setActiveFilter(opt)} className={`px-3 py-1 rounded-full text-sm ${activeFilter===opt ? 'bg-blue-600 text-white' : 'text-gray-600 bg-white border border-transparent hover:bg-gray-50'}`}>
+						<button key={opt} onClick={() => setActiveFilter(opt)} className={`px-3 py-1 rounded-full text-sm ${activeFilter === opt ? 'bg-blue-600 text-white' : 'text-gray-600 bg-white border border-transparent hover:bg-gray-50'}`}>
 							{opt}
 						</button>
 					))}
 				</div>
 			</div>
 
-			<section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+			<section
+				ref={sectionRef}
+				className={`mt-6 transform transition-all duration-700 ease-out grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ${sectionVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+			>
 				{gridPosts.map(p => (
 					<PostCard key={p.id} post={p} />
 				))}
 			</section>
 
-			<footer className="flex justify-center py-9">
-				<div className="flex items-center gap-3">
-					<button className="w-9 h-9 rounded-full border border-gray-200 bg-white">←</button>
-					<button className="w-9 h-9 rounded-full bg-blue-600 text-white">01</button>
-					<button className="w-9 h-9 rounded-full border border-gray-200 bg-white">02</button>
-					<button className="w-9 h-9 rounded-full border border-gray-200 bg-white">03</button>
-					<button className="w-9 h-9 rounded-full border border-gray-200 bg-white">→</button>
-				</div>
-			</footer>
+			<div className="py-6 flex justify-center">
+				<Link
+					href="/trending"
+					aria-label="Show more trending articles"
+					className="group inline-flex items-center gap-3 bg-[#0b1220] hover:bg-gradient-to-r hover:from-[#0b1220] hover:to-[#0f1724] text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
+				>
+					<span className="text-sm font-medium transition-colors duration-200">Show me more</span>
+
+					<span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 transition-transform duration-200 transform group-hover:translate-x-1 group-hover:bg-white/10">
+						<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+							<path d="M9 18l6-6-6-6" />
+						</svg>
+					</span>
+				</Link>
+			</div>
 		</main>
 	);
 }

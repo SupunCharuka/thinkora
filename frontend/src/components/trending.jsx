@@ -50,13 +50,13 @@ export default function Trending() {
       </div>
 
       <div className="mt-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[
             {
               title: 'Journey to Mars: The Future of Space Exploration',
               category: 'Technology',
               author: 'Dr. Michael Chen',
-              meta: 'May 15, 2025 · 5 min read',
+              meta: 'May 15, 2025',
               img: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=60',
               likes: '3.5k',
               comments: '67',
@@ -65,7 +65,7 @@ export default function Trending() {
               title: 'The Future of AI: Breakthroughs and Challenges',
               category: 'Music',
               author: 'Emma Green',
-              meta: 'Jan 20, 2025 · 4 min read',
+              meta: 'Jan 20, 2025',
               img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=60',
               likes: '3.7k',
               comments: '67',
@@ -74,7 +74,7 @@ export default function Trending() {
               title: 'Behind the Beats: Hip Hop Production Masterclass',
               category: 'Wellness',
               author: 'Maria Rodriguez',
-              meta: 'Jan 20, 2025 · 4 min read',
+              meta: 'Jan 20, 2025',
               img: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1400&q=60',
               likes: '3.5k',
               comments: '78',
@@ -84,7 +84,7 @@ export default function Trending() {
               title: 'Sustainable Living: Eco-Friendly Home Ideas',
               category: 'Lifestyle',
               author: 'Sophia Lee',
-              meta: 'Feb 10, 2025 · 6 min read',
+              meta: 'Feb 10, 2025',
               img: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1400&q=60',
               likes: '4.1k',
               comments: '89',
@@ -93,7 +93,7 @@ export default function Trending() {
               title: 'Culinary Journeys: Exploring World Cuisines',
               category: 'Food',
               author: 'Liam Johnson',
-              meta: 'Mar 5, 2025 · 7 min read',
+              meta: 'Mar 5, 2025',
               img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1400&q=60',
               likes: '2.9k',
               comments: '45',
@@ -102,18 +102,18 @@ export default function Trending() {
               title: 'The Art of Minimalist Living: Less is More',
               category: 'Design',
               author: 'Olivia Brown',
-              meta: 'Apr 12, 2025 · 5 min read',
+              meta: 'Apr 12, 2025',
               img: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&w=1400&q=60',
               likes: '3.8k',
               comments: '72',
             },
-          ].map((post, idx) => (
+          ].slice(0, 8).map((post, idx) => (
             <article
               key={idx}
-              className="relative rounded-2xl overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105"
+              className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105"
             >
               <Link href={`/posts/${post.slug || '#'}`} className="block">
-                <div className="w-full h-64 sm:h-56 lg:h-64 relative">
+                <div className="w-full h-[420px] relative rounded-lg overflow-hidden bg-gray-100">
                   <Image
                     src={post.img}
                     alt={post.title}
@@ -121,19 +121,27 @@ export default function Trending() {
                     className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                   />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-colors duration-300 group-hover:from-black/70" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-colors duration-300 group-hover:from-black/80" />
 
                   <div className="absolute top-4 left-4">
-                    <span className="inline-block bg-white/90 text-xs text-blue-700 px-3 py-1 rounded-full font-medium translate-y-1 transition-all duration-300 group-hover:translate-y-0">
+                    <span className="inline-flex items-center gap-2 bg-yellow-300 text-black text-xs px-3 py-1 rounded-full font-semibold shadow-sm">
+                      <span className="w-2 h-2 rounded-full bg-black inline-block" />
                       {post.category}
                     </span>
                   </div>
 
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <h4 className="text-white text-lg sm:text-xl font-semibold leading-tight drop-shadow-md transform transition-all duration-300 group-hover:translate-y-0 group-hover:scale-100">
-                      {post.title}
+                  <div className="absolute top-4 right-4">
+                    <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    </div>
+                  </div>
+
+                  <div className="absolute bottom-6 left-4 right-4">
+                    <h4 className="text-white text-2xl sm:text-xl font-bold leading-tight drop-shadow-lg transition-all duration-300 group-hover:-translate-y-1">
+                      <span className="inline-block">{post.title}</span>
+                      <span className="block h-[2px] bg-white transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mt-2" aria-hidden="true" />
                     </h4>
-                    <p className="text-sm text-white/90 mt-2 drop-shadow-sm opacity-90 transition-opacity duration-300">{post.author} · {post.meta}</p>
+                    <p className="text-sm text-white/90 mt-2 drop-shadow-sm opacity-95">{post.author} · {post.meta}</p>
                   </div>
 
                   {post.isVideo && (
