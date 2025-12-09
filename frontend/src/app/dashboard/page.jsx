@@ -1,17 +1,17 @@
 "use client";
 import React, { useState } from "react";
-import Sidebar from "@/components/dashboard/Sidebar";
-import Topbar from "@/components/dashboard/Topbar";
-import StatCard from "@/components/dashboard/StatCard";
-import PostsTable from "@/components/dashboard/PostsTable";
-import posts from "@/data/posts";
+import Sidebar from "@/components/dashboard/sidebar";
+import Topbar from "@/components/dashboard/topbar";
+import StatCard from "@/components/dashboard/statCard";
+import ArticlesTable from "@/components/dashboard/articlesTable";
+import articles from "@/data/articles";
 
 
 
 export default function DashboardPage() {
-  const totalPosts = posts.length;
-  const categories = Array.from(new Set(posts.map((p) => p.category))).length;
-  const latest = posts.slice().sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+  const totalarticles = articles.length;
+  const categories = Array.from(new Set(articles.map((p) => p.category))).length;
+  const latest = articles.slice().sort((a, b) => (a.date < b.date ? 1 : -1))[0];
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -26,15 +26,15 @@ export default function DashboardPage() {
           <Topbar onOpenSidebar={() => setMobileOpen(true)} />
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <StatCard title="Total posts" value={totalPosts} />
+            <StatCard title="Total articles" value={totalarticles} />
             <StatCard title="Categories" value={categories} />
-            <StatCard title="Latest post" value={latest?.title || "—"} />
+            <StatCard title="Latest article" value={latest?.title || "—"} />
           </div>
 
           <section className="mt-8">
-            <h2 className="text-lg font-semibold">Posts</h2>
+            <h2 className="text-lg font-semibold">Articles</h2>
             <div className="mt-4 bg-white dark:bg-gray-800 shadow rounded-md">
-              <PostsTable  />
+              <ArticlesTable  />
             </div>
           </section>
         </main>

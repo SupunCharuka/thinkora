@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 
-const posts = [
+const articles = [
 	{
 		id: 1,
 		title: 'Beachmaster Elephant Seal Fights off Rival Male, The match is uncompromising',
@@ -75,20 +75,20 @@ const posts = [
 
 
 
-function PostCard({ post }) {
+function ArticleCard({ article }) {
 
 	return (
 		<article className="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer">
-			<Link href={`/posts/${post.id}`} className="absolute inset-0 z-10" aria-label={post.title} />
+			<Link href={`/articles/${article.id}`} className="absolute inset-0 z-10" aria-label={article.title} />
 			<div className="block relative h-[420px] md:h-[420px] overflow-hidden bg-gray-100 rounded-lg">
-				<Image src={post.image} alt={post.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+				<Image src={article.image} alt={article.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
 			</div>
 			<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 group-hover:from-black/80"></div>
 
 			<div className="absolute top-4 left-4">
 				<span className="inline-flex items-center gap-2 bg-yellow-400 text-black text-xs font-semibold px-3 py-1 rounded-full">
 					<span className="w-2 h-2 rounded-full bg-black inline-block" />
-					{post.category?.[0]}
+					{article.category?.[0]}
 				</span>
 			</div>
 
@@ -100,33 +100,33 @@ function PostCard({ post }) {
 
 			<div className="absolute left-5 bottom-5 right-5 text-white">
 				<h3 className="text-white text-2xl sm:text-xl font-bold leading-tight drop-shadow-lg mb-2 transition-all duration-300 group-hover:-translate-y-1">
-					<span className="inline-block">{post.title}</span>
+					<span className="inline-block">{article.title}</span>
 					<span className="block h-[2px] bg-white transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mt-2" aria-hidden="true" />
 				</h3>
-				<div className="text-sm text-white/80">by Author · {post.date}</div>
-				{post.excerpt && (
-					<p className="mt-2 text-sm text-white/90 max-w-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">{post.excerpt}</p>
+				<div className="text-sm text-white/80">by Author · {article.date}</div>
+				{article.excerpt && (
+					<p className="mt-2 text-sm text-white/90 max-w-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">{article.excerpt}</p>
 				)}
 			</div>
 		</article>
 	);
 }
 
-export default function PostsPage() {
-	const hero = posts[0];
-	const others = posts.slice(1);
+export default function articlesPage() {
+	const hero = articles[0];
+	const others = articles.slice(1);
 
-	const categories = Array.from(new Set(posts.flatMap(p => p.category || []))).sort();
-	const filterOptions = ['All post', ...categories];
-	const [activeFilter, setActiveFilter] = useState('All post');
+	const categories = Array.from(new Set(articles.flatMap(p => p.category || []))).sort();
+	const filterOptions = ['All article', ...categories];
+	const [activeFilter, setActiveFilter] = useState('All article');
 
-	// include all posts so the grid shows the first post as well
-	const gridPosts = posts.filter(p => {
-		if (activeFilter === 'All post') return true;
+	// include all articles so the grid shows the first article as well
+	const gridarticles = articles.filter(p => {
+		if (activeFilter === 'All article') return true;
 		return p.category?.includes(activeFilter);
 	});
 
-	// Reveal-on-scroll for the posts grid using IntersectionObserver
+	// Reveal-on-scroll for the articles grid using IntersectionObserver
 	const sectionRef = useRef(null);
 	const [sectionVisible, setSectionVisible] = useState(false);
 
@@ -155,7 +155,7 @@ export default function PostsPage() {
 				<div className="text-sm text-gray-500">Show me:</div>
 				<div className="flex flex-wrap items-center gap-3">
 					{filterOptions.map(opt => {
-						const count = opt === 'All post' ? posts.length : posts.filter(p => p.category?.includes(opt)).length;
+						const count = opt === 'All article' ? articles.length : articles.filter(p => p.category?.includes(opt)).length;
 						const isActive = activeFilter === opt;
 						return (
 							<button
@@ -179,8 +179,8 @@ export default function PostsPage() {
 				ref={sectionRef}
 				className={`mt-6 transform transition-all duration-700 ease-out grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ${sectionVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
 			>
-				{gridPosts.map(p => (
-					<PostCard key={p.id} post={p} />
+				{gridarticles.map(p => (
+					<ArticleCard key={p.id} article={p} />
 				))}
 			</section>
 

@@ -36,7 +36,7 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-6 text-sm text-gray-700">
             {[
               { href: '/', label: 'Home' },
-              { href: '/posts', label: 'Posts' },
+              { href: '/articles', label: 'Articles' },
               { href: '/collections', label: 'Collections' },
               { href: '/trending', label: 'Trending' },
             ].map((item) => {
@@ -84,7 +84,7 @@ export default function Header() {
                 <nav className="flex flex-col p-4 gap-2 text-sm">
                   {[
                     { href: '/', label: 'Home' },
-                    { href: '/posts', label: 'Posts' },
+                    { href: '/articles', label: 'Articles' },
                     { href: '/collections', label: 'Collections' },
                     { href: '/trending', label: 'Trending' },
                   ].map((item) => {

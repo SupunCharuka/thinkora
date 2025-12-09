@@ -19,7 +19,7 @@ export default function Topbar({ onOpenSidebar }) {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="px-3 py-2 bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-md shadow hidden sm:inline-block">New post</button>
+        <button className="px-3 py-2 bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-md shadow hidden sm:inline-block">New article</button>
 
         <div className="flex items-center gap-3">
           <button className="p-2 rounded-full bg-white/10">🔔</button>

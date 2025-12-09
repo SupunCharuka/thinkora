@@ -1,12 +1,14 @@
 "use client"
-import React, { useEffect, useRef, useState } from 'react'
+import React, { use, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 
-export default function PostPage({ params }) {
-  const { slug } = params || { slug: 'sample-post' }
+export default function articlePage({ params }) {
+  // `params` is a Promise in client components; unwrap with React's `use`.
+  const resolvedParams = use(params);
+  const { slug } = resolvedParams || { slug: 'sample-article' }
 
   // Temporary static data; later you can replace with a fetch by `slug`.
-  const post = {
+  const article = {
     title:
       'The effect of livestock on the physiological condition of roe deer is modulated by habitat quality',
     author: {
@@ -106,8 +108,8 @@ export default function PostPage({ params }) {
     </div>
   )
 
-  // Sample recommended posts (replace with real data later)
-  const recommendedPosts = [
+  // Sample recommended articles (replace with real data later)
+  const recommendedarticles = [
     {
       id: 'r1',
       title: 'How habitat quality affects wildlife behavior',
@@ -116,7 +118,7 @@ export default function PostPage({ params }) {
       excerpt: 'An overview of the ways habitat differences lead to measurable changes in animal physiology and movement patterns.',
       author: 'By Anna Lee',
       readTime: '6 mins read',
-      href: '/posts/habitat-quality'
+      href: '/articles/habitat-quality'
     },
     {
       id: 'r2',
@@ -126,7 +128,7 @@ export default function PostPage({ params }) {
       excerpt: 'Practical strategies for balancing livestock productivity with landscape conservation.',
       author: 'By Marco Silva',
       readTime: '7 mins read',
-      href: '/posts/sustainable-livestock'
+      href: '/articles/sustainable-livestock'
     },
     {
       id: 'r3',
@@ -136,7 +138,7 @@ export default function PostPage({ params }) {
       excerpt: 'Methods and best practices for assessing stress biomarkers in field studies.',
       author: 'By Dr. K. Chen',
       readTime: '5 mins read',
-      href: '/posts/stress-biomarkers'
+      href: '/articles/stress-biomarkers'
     }
   ]
 
@@ -194,19 +196,19 @@ export default function PostPage({ params }) {
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-6">
-            {post.title}
+            {article.title}
           </h1>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img
-                src={post.author.avatar}
-                alt={post.author.name}
+                src={article.author.avatar}
+                alt={article.author.name}
                 className="w-10 h-10 rounded-full object-cover"
               />
               <div className="text-sm text-slate-600">
-                <div className="font-semibold text-slate-800">By {post.author.name}</div>
-                <div className="text-xs mt-0.5">{post.date} · {post.readTime}</div>
+                <div className="font-semibold text-slate-800">By {article.author.name}</div>
+                <div className="text-xs mt-0.5">{article.date} · {article.readTime}</div>
               </div>
             </div>
 
@@ -229,14 +231,14 @@ export default function PostPage({ params }) {
 
         <figure className="mb-8">
           <img
-            src={post.image}
-            alt={post.title}
+            src={article.image}
+            alt={article.title}
             className="w-full rounded-xl shadow-lg object-cover max-h-[520px] mx-auto"
           />
         </figure>
 
         <div className="prose prose-lg max-w-none text-slate-800">
-          {post.content.map((p, idx) => (
+          {article.content.map((p, idx) => (
             <p className='text-dark m-0' key={idx}>{p}</p>
           ))}
 
@@ -264,7 +266,7 @@ export default function PostPage({ params }) {
           <h3 className="text-2xl font-bold mb-6">Recommended for you</h3>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {recommendedPosts.map((r) => (
+            {recommendedarticles.map((r) => (
               <Link
                 key={r.id}
                 href={r.href}
@@ -289,7 +291,7 @@ export default function PostPage({ params }) {
           <h3 className="text-2xl font-bold mb-6">Comments</h3>
 
           <div className="space-y-3">
-            {post.comments.map((c) => renderComment(c))}
+            {article.comments.map((c) => renderComment(c))}
           </div>
 
           <div className="mt-10">

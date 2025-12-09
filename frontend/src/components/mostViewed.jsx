@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import Image from 'next/image';
-import posts from '@/data/posts';
+import articles from '@/data/articles';
 import { useEffect, useRef, useState } from 'react';
 
 export default function MostViewed() {
@@ -36,8 +36,8 @@ export default function MostViewed() {
         'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1400&q=60',
     ];
 
-    const main = posts[0] || { title: 'Mastering French Cuisine: A Complete Guide', category: 'Architecture', date: 'Mar 5, 2025', slug: 'mastering-french-cuisine' };
-    const side = posts.slice(1, 5);
+    const main = articles[0] || { title: 'Mastering French Cuisine: A Complete Guide', category: 'Architecture', date: 'Mar 5, 2025', slug: 'mastering-french-cuisine' };
+    const side = articles.slice(1, 5);
 
     return (
         <section
@@ -54,9 +54,9 @@ export default function MostViewed() {
             </div>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {posts.slice(0, 4).map((p, i) => (
+                {articles.slice(0, 4).map((p, i) => (
                     <article key={p.slug || i} className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105">
-                        <Link href={p.slug ? `/posts/${p.slug}` : '#'} className="group block rounded-lg overflow-hidden shadow-lg">
+                        <Link href={p.slug ? `/articles/${p.slug}` : '#'} className="group block rounded-lg overflow-hidden shadow-lg">
                             <div className="w-full h-[420px] relative bg-gray-100">
                                 <Image
                                     src={p.image || sampleImages[i % sampleImages.length]}
