@@ -4,8 +4,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function Hero({ articles = [], autoplay = true, interval = 5000, showArrows = false, animation = 'fade', animationDuration = 600 }) {
-  const slides = articles.length ? articles : [];
+export default function Hero({ blogs = [], autoplay = true, interval = 5000, showArrows = false, animation = 'fade', animationDuration = 600 }) {
+  const slides = blogs.length ? blogs : [];
   const [index, setIndex] = useState(0);
   const [contentVisible, setContentVisible] = useState(true);
   const autoplayRef = useRef(null);
@@ -153,7 +153,7 @@ export default function Hero({ articles = [], autoplay = true, interval = 5000, 
                 return (
                     <Link
                     key={r.slug || i}
-                    href={r.slug ? `/articles/${r.slug}` : '#'}
+                    href={r.slug ? `/blogs/${r.slug}` : '#'}
                     onMouseEnter={() => setIndex(i)}
                     onFocus={() => setIndex(i)}
                     aria-current={isActive ? 'true' : undefined}

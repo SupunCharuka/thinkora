@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import Image from 'next/image';
-import articles from '@/data/articles';
+import blogs from '@/data/blogs';
 import { useEffect, useRef, useState } from 'react';
 
 export default function Latest() {
@@ -58,22 +58,22 @@ export default function Latest() {
         >
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold">Latest articles</h2>
-                    <p className="text-sm text-gray-500">Over 2000+ articles</p>
+                    <h2 className="text-3xl font-bold">Latest blogs</h2>
+                    <p className="text-sm text-gray-500">Over 2000+ blogs</p>
                 </div>
             </div>
 
             <div className="mt-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {articles.concat(articles).slice(0, 8).map((article, idx) => {
+                    {blogs.concat(blogs).slice(0, 8).map((blog, idx) => {
                         const author = authors[idx % authors.length];
                         return (
-                            <article key={article.slug + idx} className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105">
-                                <Link href={`/articles/${article.slug}`} className="group block rounded-lg overflow-hidden shadow-lg">
+                            <blog key={blog.slug + idx} className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105">
+                                <Link href={`/blogs/${blog.slug}`} className="group block rounded-lg overflow-hidden shadow-lg">
                                     <div className="w-full h-[420px] relative rounded-lg overflow-hidden bg-gray-100">
                                         <Image
                                             src={sampleImages[idx % sampleImages.length]}
-                                            alt={article.title}
+                                            alt={blog.title}
                                             fill
                                             className="object-cover transition-transform duration-500 group-hover:scale-105"
                                         />
@@ -83,7 +83,7 @@ export default function Latest() {
                                         <div className="absolute top-4 left-4">
                                             <span className="inline-flex items-center gap-2 bg-yellow-300 text-black text-xs px-3 py-1 rounded-full font-semibold shadow-sm">
                                                 <span className="w-2 h-2 rounded-full bg-black inline-block" />
-                                                {article.category}
+                                                {blog.category}
                                             </span>
                                         </div>
 
@@ -95,13 +95,13 @@ export default function Latest() {
 
                                         <div className="absolute bottom-6 left-4 right-4">
                                             <h3 className="text-white text-lg sm:text-xl font-bold leading-tight drop-shadow-lg transition-all duration-300 group-hover:-translate-y-1">
-                                                <span className="inline-block">{article.title}</span>
+                                                <span className="inline-block">{blog.title}</span>
                                                 <span className="block h-[2px] bg-white transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mt-2" aria-hidden="true" />
                                             </h3>
-                                            <p className="text-sm text-white/90 mt-2 drop-shadow-sm opacity-95">{author.name} · {article.date}</p>
+                                            <p className="text-sm text-white/90 mt-2 drop-shadow-sm opacity-95">{author.name} · {blog.date}</p>
                                         </div>
 
-                                        {article.isVideo && (
+                                        {blog.isVideo && (
                                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                                 <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110">
                                                     <svg className="w-6 h-6 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -112,18 +112,18 @@ export default function Latest() {
                                         )}
                                     </div>
                                 </Link>
-                            </article>
+                            </blog>
                         );
                     })}
                 </div>
 
                 <div className="mt-4 flex justify-center">
                     <Link
-                        href="/articles"
-                        aria-label="See more articles"
+                        href="/blogs"
+                        aria-label="See more blogs"
                         className="group inline-flex items-center gap-3 bg-[#0b1220] hover:bg-gradient-to-r hover:from-[#0b1220] hover:to-[#0f1724] text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
                     >
-                        <span className="text-sm font-medium transition-colors duration-200">See more articles</span>
+                        <span className="text-sm font-medium transition-colors duration-200">See more blogs</span>
 
                         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 transition-transform duration-200 transform group-hover:translate-x-1 group-hover:bg-white/10">
                             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

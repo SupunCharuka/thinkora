@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 
-const articles = [
+const blogs = [
 	{
 		id: 1,
 		title: 'Beachmaster Elephant Seal Fights off Rival Male, The match is uncompromising',
@@ -75,20 +75,20 @@ const articles = [
 
 
 
-function ArticleCard({ article }) {
+function BlogCard({ blog }) {
 
 	return (
-		<article className="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer">
-			<Link href={`/articles/${article.id}`} className="absolute inset-0 z-10" aria-label={article.title} />
+		<blog className="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer">
+			<Link href={`/blogs/${blog.id}`} className="absolute inset-0 z-10" aria-label={blog.title} />
 			<div className="block relative h-[420px] md:h-[420px] overflow-hidden bg-gray-100 rounded-lg">
-				<Image src={article.image} alt={article.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+				<Image src={blog.image} alt={blog.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
 			</div>
 			<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 group-hover:from-black/80"></div>
 
 			<div className="absolute top-4 left-4">
 				<span className="inline-flex items-center gap-2 bg-yellow-400 text-black text-xs font-semibold px-3 py-1 rounded-full">
 					<span className="w-2 h-2 rounded-full bg-black inline-block" />
-					{article.category?.[0]}
+					{blog.category?.[0]}
 				</span>
 			</div>
 
@@ -100,33 +100,33 @@ function ArticleCard({ article }) {
 
 			<div className="absolute left-5 bottom-5 right-5 text-white">
 				<h3 className="text-white text-2xl sm:text-xl font-bold leading-tight drop-shadow-lg mb-2 transition-all duration-300 group-hover:-translate-y-1">
-					<span className="inline-block">{article.title}</span>
+					<span className="inline-block">{blog.title}</span>
 					<span className="block h-[2px] bg-white transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mt-2" aria-hidden="true" />
 				</h3>
-				<div className="text-sm text-white/80">by Author · {article.date}</div>
-				{article.excerpt && (
-					<p className="mt-2 text-sm text-white/90 max-w-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">{article.excerpt}</p>
+				<div className="text-sm text-white/80">by Author · {blog.date}</div>
+				{blog.excerpt && (
+					<p className="mt-2 text-sm text-white/90 max-w-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">{blog.excerpt}</p>
 				)}
 			</div>
-		</article>
+		</blog>
 	);
 }
 
-export default function articlesPage() {
-	const hero = articles[0];
-	const others = articles.slice(1);
+export default function blogsPage() {
+	const hero = blogs[0];
+	const others = blogs.slice(1);
 
-	const categories = Array.from(new Set(articles.flatMap(p => p.category || []))).sort();
-	const filterOptions = ['All article', ...categories];
-	const [activeFilter, setActiveFilter] = useState('All article');
+	const categories = Array.from(new Set(blogs.flatMap(p => p.category || []))).sort();
+	const filterOptions = ['All blog', ...categories];
+	const [activeFilter, setActiveFilter] = useState('All blog');
 
-	// include all articles so the grid shows the first article as well
-	const gridarticles = articles.filter(p => {
-		if (activeFilter === 'All article') return true;
+	// include all blogs so the grid shows the first blog as well
+	const gridblogs = blogs.filter(p => {
+		if (activeFilter === 'All blog') return true;
 		return p.category?.includes(activeFilter);
 	});
 
-	// Reveal-on-scroll for the articles grid using IntersectionObserver
+	// Reveal-on-scroll for the blogs grid using IntersectionObserver
 	const sectionRef = useRef(null);
 	const [sectionVisible, setSectionVisible] = useState(false);
 
@@ -155,7 +155,7 @@ export default function articlesPage() {
 				<div className="text-sm text-gray-500">Show me:</div>
 				<div className="flex flex-wrap items-center gap-3">
 					{filterOptions.map(opt => {
-						const count = opt === 'All article' ? articles.length : articles.filter(p => p.category?.includes(opt)).length;
+						const count = opt === 'All blog' ? blogs.length : blogs.filter(p => p.category?.includes(opt)).length;
 						const isActive = activeFilter === opt;
 						return (
 							<button
@@ -179,15 +179,15 @@ export default function articlesPage() {
 				ref={sectionRef}
 				className={`mt-6 transform transition-all duration-700 ease-out grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ${sectionVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
 			>
-				{gridarticles.map(p => (
-					<ArticleCard key={p.id} article={p} />
+				{gridblogs.map(p => (
+					<BlogCard key={p.id} blog={p} />
 				))}
 			</section>
 
 			<div className="py-6 flex justify-center">
 				<Link
 					href="/trending"
-					aria-label="Show more trending articles"
+					aria-label="Show more trending blogs"
 					className="group inline-flex items-center gap-3 bg-[#0b1220] hover:bg-gradient-to-r hover:from-[#0b1220] hover:to-[#0f1724] text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
 				>
 					<span className="text-sm font-medium transition-colors duration-200">Show me more</span>

@@ -13,7 +13,7 @@ function initials(name) {
     return name.split(' ').slice(0,2).map(s => s[0]).join('').toUpperCase();
 }
 
-export default function articlesTable() {
+export default function blogsTable() {
     const [query, setQuery] = useState('');
     const [page, setPage] = useState(1);
     const pageSize = 5;
@@ -40,7 +40,7 @@ export default function articlesTable() {
                     <input value={query} onChange={e=>{setQuery(e.target.value); setPage(1);}} type="text" id="input-group-1" className="block w-full ps-9 pe-3 py-2 bg-white border border-default-medium text-heading text-sm rounded-lg focus:ring-brand focus:border-brand shadow-sm" placeholder="Search products or categories" />
                 </div>
                 <div className="flex items-center gap-2">
-                    <button className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-md bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-sm hover:opacity-95">New article</button>
+                    <button className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-md bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-sm hover:opacity-95">New blog</button>
                     <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading shadow-sm font-medium leading-5 rounded-md text-sm px-3 py-2 focus:outline-none" type="button">
                         <svg className="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                             <path stroke="currentColor" strokeLinecap="round" strokeWidth="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z" />

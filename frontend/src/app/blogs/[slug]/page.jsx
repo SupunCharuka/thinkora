@@ -2,13 +2,13 @@
 import React, { use, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 
-export default function articlePage({ params }) {
+export default function blogPage({ params }) {
   // `params` is a Promise in client components; unwrap with React's `use`.
   const resolvedParams = use(params);
-  const { slug } = resolvedParams || { slug: 'sample-article' }
+  const { slug } = resolvedParams || { slug: 'sample-blog' }
 
   // Temporary static data; later you can replace with a fetch by `slug`.
-  const article = {
+  const blog = {
     title:
       'The effect of livestock on the physiological condition of roe deer is modulated by habitat quality',
     author: {
@@ -108,8 +108,8 @@ export default function articlePage({ params }) {
     </div>
   )
 
-  // Sample recommended articles (replace with real data later)
-  const recommendedarticles = [
+  // Sample recommended blogs (replace with real data later)
+  const recommendedblogs = [
     {
       id: 'r1',
       title: 'How habitat quality affects wildlife behavior',
@@ -118,7 +118,7 @@ export default function articlePage({ params }) {
       excerpt: 'An overview of the ways habitat differences lead to measurable changes in animal physiology and movement patterns.',
       author: 'By Anna Lee',
       readTime: '6 mins read',
-      href: '/articles/habitat-quality'
+      href: '/blogs/habitat-quality'
     },
     {
       id: 'r2',
@@ -128,7 +128,7 @@ export default function articlePage({ params }) {
       excerpt: 'Practical strategies for balancing livestock productivity with landscape conservation.',
       author: 'By Marco Silva',
       readTime: '7 mins read',
-      href: '/articles/sustainable-livestock'
+      href: '/blogs/sustainable-livestock'
     },
     {
       id: 'r3',
@@ -138,7 +138,7 @@ export default function articlePage({ params }) {
       excerpt: 'Methods and best practices for assessing stress biomarkers in field studies.',
       author: 'By Dr. K. Chen',
       readTime: '5 mins read',
-      href: '/articles/stress-biomarkers'
+      href: '/blogs/stress-biomarkers'
     }
   ]
 
@@ -171,7 +171,7 @@ export default function articlePage({ params }) {
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
       }`}
     >
-      <article>
+      <blog>
         <header className="mb-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div>
@@ -196,19 +196,19 @@ export default function articlePage({ params }) {
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-6">
-            {article.title}
+            {blog.title}
           </h1>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img
-                src={article.author.avatar}
-                alt={article.author.name}
+                src={blog.author.avatar}
+                alt={blog.author.name}
                 className="w-10 h-10 rounded-full object-cover"
               />
               <div className="text-sm text-slate-600">
-                <div className="font-semibold text-slate-800">By {article.author.name}</div>
-                <div className="text-xs mt-0.5">{article.date} · {article.readTime}</div>
+                <div className="font-semibold text-slate-800">By {blog.author.name}</div>
+                <div className="text-xs mt-0.5">{blog.date} · {blog.readTime}</div>
               </div>
             </div>
 
@@ -231,14 +231,14 @@ export default function articlePage({ params }) {
 
         <figure className="mb-8">
           <img
-            src={article.image}
-            alt={article.title}
+            src={blog.image}
+            alt={blog.title}
             className="w-full rounded-xl shadow-lg object-cover max-h-[520px] mx-auto"
           />
         </figure>
 
         <div className="prose prose-lg max-w-none text-slate-800">
-          {article.content.map((p, idx) => (
+          {blog.content.map((p, idx) => (
             <p className='text-dark m-0' key={idx}>{p}</p>
           ))}
 
@@ -266,7 +266,7 @@ export default function articlePage({ params }) {
           <h3 className="text-2xl font-bold mb-6">Recommended for you</h3>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {recommendedarticles.map((r) => (
+            {recommendedblogs.map((r) => (
               <Link
                 key={r.id}
                 href={r.href}
@@ -291,7 +291,7 @@ export default function articlePage({ params }) {
           <h3 className="text-2xl font-bold mb-6">Comments</h3>
 
           <div className="space-y-3">
-            {article.comments.map((c) => renderComment(c))}
+            {blog.comments.map((c) => renderComment(c))}
           </div>
 
           <div className="mt-10">
@@ -344,7 +344,7 @@ export default function articlePage({ params }) {
             </div>
           </div>
         </section>
-      </article>
+      </blog>
     </main>
   )
 }

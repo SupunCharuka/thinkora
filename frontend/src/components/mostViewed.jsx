@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import Image from 'next/image';
-import articles from '@/data/articles';
+import blogs from '@/data/blogs';
 import { useEffect, useRef, useState } from 'react';
 
 export default function MostViewed() {
@@ -36,8 +36,8 @@ export default function MostViewed() {
         'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1400&q=60',
     ];
 
-    const main = articles[0] || { title: 'Mastering French Cuisine: A Complete Guide', category: 'Architecture', date: 'Mar 5, 2025', slug: 'mastering-french-cuisine' };
-    const side = articles.slice(1, 5);
+    const main = blogs[0] || { title: 'Mastering French Cuisine: A Complete Guide', category: 'Architecture', date: 'Mar 5, 2025', slug: 'mastering-french-cuisine' };
+    const side = blogs.slice(1, 5);
 
     return (
         <section
@@ -48,15 +48,15 @@ export default function MostViewed() {
 
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold">Most viewed articles</h2>
-                    <p className="text-sm text-gray-500">Explore the most viewed articles</p>
+                    <h2 className="text-3xl font-bold">Most viewed blogs</h2>
+                    <p className="text-sm text-gray-500">Explore the most viewed blogs</p>
                 </div>
             </div>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {articles.slice(0, 4).map((p, i) => (
-                    <article key={p.slug || i} className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105">
-                        <Link href={p.slug ? `/articles/${p.slug}` : '#'} className="group block rounded-lg overflow-hidden shadow-lg">
+                {blogs.slice(0, 4).map((p, i) => (
+                    <blog key={p.slug || i} className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105">
+                        <Link href={p.slug ? `/blogs/${p.slug}` : '#'} className="group block rounded-lg overflow-hidden shadow-lg">
                             <div className="w-full h-[420px] relative bg-gray-100">
                                 <Image
                                     src={p.image || sampleImages[i % sampleImages.length]}
@@ -99,14 +99,14 @@ export default function MostViewed() {
                                 )}
                             </div>
                         </Link>
-                    </article>
+                    </blog>
                 ))}
             </div>
 
             <div className="mt-4 flex justify-center">
                 <Link
                     href="/trending"
-                    aria-label="Show more trending articles"
+                    aria-label="Show more trending blogs"
                     className="group inline-flex items-center gap-3 bg-[#0b1220] hover:bg-gradient-to-r hover:from-[#0b1220] hover:to-[#0f1724] text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
                 >
                     <span className="text-sm font-medium transition-colors duration-200">Show me more</span>

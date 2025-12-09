@@ -3,15 +3,15 @@ import React, { useState } from "react";
 import Sidebar from "@/components/dashboard/sidebar";
 import Topbar from "@/components/dashboard/topbar";
 import StatCard from "@/components/dashboard/statCard";
-import ArticlesTable from "@/components/dashboard/articlesTable";
-import articles from "@/data/articles";
+import BlogsTable from "@/components/dashboard/blogsTable";
+import blogs from "@/data/blogs";
 
 
 
 export default function DashboardPage() {
-  const totalarticles = articles.length;
-  const categories = Array.from(new Set(articles.map((p) => p.category))).length;
-  const latest = articles.slice().sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+  const totalblogs = blogs.length;
+  const categories = Array.from(new Set(blogs.map((p) => p.category))).length;
+  const latest = blogs.slice().sort((a, b) => (a.date < b.date ? 1 : -1))[0];
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -26,15 +26,15 @@ export default function DashboardPage() {
           <Topbar onOpenSidebar={() => setMobileOpen(true)} />
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <StatCard title="Total articles" value={totalarticles} />
+            <StatCard title="Total blogs" value={totalblogs} />
             <StatCard title="Categories" value={categories} />
-            <StatCard title="Latest article" value={latest?.title || "—"} />
+            <StatCard title="Latest blog" value={latest?.title || "—"} />
           </div>
 
           <section className="mt-8">
-            <h2 className="text-lg font-semibold">Articles</h2>
+            <h2 className="text-lg font-semibold">Blogs</h2>
             <div className="mt-4 bg-white dark:bg-gray-800 shadow rounded-md">
-              <ArticlesTable  />
+              <BlogsTable  />
             </div>
           </section>
         </main>
