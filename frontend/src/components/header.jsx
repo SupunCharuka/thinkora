@@ -63,11 +63,7 @@ export default function Header() {
               <Link href="/signup" className="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700">Sign up</Link>
             </div>
 
-            <button aria-label="Toggle theme" className="p-2 rounded-md text-gray-600 hover:bg-gray-50">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-              </svg>
-            </button>
+           
 
             <button
               aria-label="Open menu"
