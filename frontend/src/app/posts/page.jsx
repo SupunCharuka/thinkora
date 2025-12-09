@@ -153,12 +153,25 @@ export default function PostsPage() {
 
 			<div className="mb-6 flex items-center gap-4">
 				<div className="text-sm text-gray-500">Show me:</div>
-				<div className="flex items-center gap-3">
-					{filterOptions.map(opt => (
-						<button key={opt} onClick={() => setActiveFilter(opt)} className={`px-3 py-1 rounded-full text-sm ${activeFilter === opt ? 'bg-blue-600 text-white' : 'text-gray-600 bg-white border border-transparent hover:bg-gray-50'}`}>
-							{opt}
-						</button>
-					))}
+				<div className="flex flex-wrap items-center gap-3">
+					{filterOptions.map(opt => {
+						const count = opt === 'All post' ? posts.length : posts.filter(p => p.category?.includes(opt)).length;
+						const isActive = activeFilter === opt;
+						return (
+							<button
+								key={opt}
+								onClick={() => setActiveFilter(opt)}
+								aria-pressed={isActive}
+								className={`group inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm transition-all duration-150 ${isActive ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:shadow-sm'}`}
+							>
+								<span className={`w-2 h-2 rounded-full ${isActive ? 'bg-white' : 'bg-blue-100'} inline-block`} />
+								<span className="truncate">{opt}</span>
+								<span className={`ml-2 inline-flex items-center justify-center w-6 h-6 text-xs rounded-full ${isActive ? 'bg-white text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
+									{count}
+								</span>
+							</button>
+						);
+					})}
 				</div>
 			</div>
 
