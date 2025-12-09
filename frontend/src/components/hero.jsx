@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Hero({ posts = [], autoplay = true, interval = 5000, showArrows = false, animation = 'fade', animationDuration = 600 }) {
   const slides = posts.length ? posts : [];
@@ -79,15 +80,19 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
               {slidesWithImages.map((s, i) => (
                 <div
                   key={s.slug || i}
-                  className="h-full flex-none bg-cover bg-center"
+                  className="h-full flex-none relative"
                   style={{
                     width: `${100 / Math.max(1, slidesWithImages.length)}%`,
-                    backgroundImage: `url(${s.__image})`,
-                    backgroundPosition: 'center center',
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden',
                   }}
-                />
+                >
+                  <Image
+                    src={s.__image}
+                    alt={s.title || ''}
+                    fill
+                    className="object-cover object-center"
+                    unoptimized
+                  />
+                </div>
               ))}
             </div>
           ) : (
@@ -96,14 +101,20 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
               {slidesWithImages.map((s, i) => (
                 <div
                   key={s.slug || i}
-                  className="absolute inset-0 h-full bg-cover bg-center"
+                  className="absolute inset-0 h-full"
                   style={{
-                    backgroundImage: `url(${s.__image})`,
-                    backgroundPosition: 'center center',
                     opacity: i === index ? 1 : 0,
                     transition: `opacity ${animationDuration}ms ease`,
                   }}
-                />
+                >
+                  <Image
+                    src={s.__image}
+                    alt={s.title || ''}
+                    fill
+                    className="object-cover object-center"
+                    unoptimized
+                  />
+                </div>
               ))}
             </>
           )}
@@ -119,7 +130,14 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
 
             <div className="flex items-center gap-3 mt-4">
               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
-                <img src={current.authorImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=60'} alt="author" className="h-full w-full object-cover" />
+                <Image
+                  src={current.authorImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=60'}
+                  alt="author"
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-cover"
+                  unoptimized
+                />
               </div>
               <div className="text-sm text-white/90">
                 <div className="font-medium">{current.author || 'John Doe'}</div>
@@ -142,7 +160,14 @@ export default function Hero({ posts = [], autoplay = true, interval = 5000, sho
                     className={`flex items-center gap-3 p-2 rounded-md transition-transform transition-shadow ${isActive ? 'bg-white/10 scale-105 shadow-lg' : 'hover:bg-white/5'}`}
                   >
                     <div className={`h-12 w-12 md:h-16 md:w-16 rounded-md overflow-hidden flex-shrink-0 bg-slate-400 ${isActive ? 'ring-2 ring-white/30' : ''}`}>
-                      <img src={r.__thumb} alt="thumb" className="h-full w-full object-cover object-center" />
+                      <Image
+                        src={r.__thumb}
+                        alt="thumb"
+                        width={64}
+                        height={64}
+                        className="h-full w-full object-cover object-center"
+                        unoptimized
+                      />
                     </div>
                     <div className="text-white">
                       <div className="font-semibold text-sm md:text-base">{r.title}</div>
