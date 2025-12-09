@@ -55,8 +55,8 @@ export default function MostViewed() {
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {posts.slice(0, 4).map((p, i) => (
-                    <article className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105">
-                        <Link key={p.slug || i} href={p.slug ? `/posts/${p.slug}` : '#'} className="group block rounded-lg overflow-hidden shadow-lg">
+                    <article key={p.slug || i} className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105">
+                        <Link href={p.slug ? `/posts/${p.slug}` : '#'} className="group block rounded-lg overflow-hidden shadow-lg">
                             <div className="w-full h-[420px] relative bg-gray-100">
                                 <Image
                                     src={p.image || sampleImages[i % sampleImages.length]}
