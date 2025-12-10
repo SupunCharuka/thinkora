@@ -6,3 +6,5 @@ export const PORT = Number(process.env.PORT);
 export const mongoDBURL = process.env.MONGODB_URL;
 
 export const FRONTEND_URL = process.env.FRONTEND_URL;
+
+export const JWT_SECRET = process.env.JWT_SECRET;
