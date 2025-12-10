@@ -2,20 +2,39 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Demo delay to emulate network/login
-    await new Promise((res) => setTimeout(res, 800));
-    setLoading(false);
-    // Replace with real auth logic
-    alert(`Signed in as ${email} (demo)`);
+    try {
+      const res = await fetch(`/api/v1/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Login failed");
+
+      // store token and user
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // redirect to dashboard
+      router.push("/dashboard");
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Login error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

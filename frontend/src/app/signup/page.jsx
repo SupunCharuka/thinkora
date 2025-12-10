@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -10,6 +11,7 @@ export default function SignupPage() {
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,12 +26,28 @@ export default function SignupPage() {
     }
 
     setLoading(true);
-    // Demo network delay
-    await new Promise((res) => setTimeout(res, 900));
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/v1/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-    // Replace with real signup logic
-    alert(`Account created for ${name || email} (demo)`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Signup failed");
+
+      // store token and user
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // redirect to dashboard
+      router.push("/dashboard");
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Signup error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
