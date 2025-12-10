@@ -8,15 +8,25 @@ export default function Topbar({ onOpenSidebar }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   function doSignOut() {
-    try {
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      window.dispatchEvent(new Event('authChange'));
-    } catch (e) {
-      // ignore
-    }
-    setConfirmOpen(false);
-    router.push('/');
+    (async () => {
+      try {
+        // Call our frontend logout proxy which clears the HttpOnly token cookie
+        await fetch('/api/v1/auth/logout', { method: 'POST' });
+      } catch (e) {
+        // ignore network errors
+      }
+
+      try {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.dispatchEvent(new Event('authChange'));
+      } catch (e) {
+        // ignore
+      }
+
+      setConfirmOpen(false);
+      router.push('/');
+    })();
   }
 
   return (

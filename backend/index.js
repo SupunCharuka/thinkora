@@ -3,6 +3,8 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import { PORT, mongoDBURL, FRONTEND_URL } from './config.js';
 import authRoutes from './routes/auth.js';
+import dashboardRoutes from './routes/dashboard.js';
+import authMiddleware from './middleware/auth.js';
 
 
 const app = express();
@@ -17,9 +19,14 @@ app.use(cors({
   credentials: true,
 }));
 
+
 // Auth routes (versioned)
 app.use('/api/v1/auth', authRoutes);
 
+// Dashboard (protected)
+app.use('/api/v1/dashboard', authMiddleware, dashboardRoutes);
+
+// Start server after connecting to MongoDB
 mongoose
   .connect(mongoDBURL)
   .then(() => {
