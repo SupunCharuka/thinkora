@@ -9,11 +9,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
+      setError("");
       const res = await fetch(`/api/v1/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -21,17 +23,25 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Login failed");
+      if (!res.ok) {
+        const msg = data?.message || "Login failed";
+        setError(msg);
+        return;
+      }
 
-      // store token and user
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      // store token (if returned) and user
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+      } else {
+        localStorage.removeItem("token");
+      }
+      if (data?.user) localStorage.setItem("user", JSON.stringify(data.user));
 
       // redirect to dashboard
       router.push("/dashboard");
     } catch (err) {
       console.error(err);
-      alert(err.message || "Login error");
+      setError(err?.message || "Login error");
     } finally {
       setLoading(false);
     }
@@ -77,6 +87,8 @@ export default function LoginPage() {
 
               <Link href="/forgot" className="text-sm text-indigo-600">Forgot?</Link>
             </div>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
 
             <button
               type="submit"
