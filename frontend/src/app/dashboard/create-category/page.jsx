@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/dashboard/sidebar';
 import Topbar from '@/components/dashboard/topbar';
 import CreateCategoryForm from '@/components/dashboard/createCategoryForm';
+import CategoryTable from '@/components/dashboard/categoryTable';
 
 export default function CreateCategoryPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -53,7 +55,8 @@ export default function CreateCategoryPage() {
 
           <div className="mt-6">
           
-            <CreateCategoryForm />
+            <CreateCategoryForm onCreated={() => setRefreshKey((k) => k + 1)} />
+            <CategoryTable refreshKey={refreshKey} />
           </div>
         </main>
       </div>

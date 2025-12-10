@@ -11,7 +11,7 @@ function generateSlug(str = '') {
     .replace(/-+/g, '-');
 }
 
-export default function CreateCategoryForm() {
+export default function CreateCategoryForm({ onCreated }) {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
@@ -52,6 +52,7 @@ export default function CreateCategoryForm() {
         return;
       }
       setStatus('created');
+      if (typeof onCreated === 'function') onCreated(data);
       // show success then reset
       setTimeout(() => {
         setName('');
