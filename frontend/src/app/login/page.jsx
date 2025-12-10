@@ -2,20 +2,56 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Demo delay to emulate network/login
-    await new Promise((res) => setTimeout(res, 800));
-    setLoading(false);
-    // Replace with real auth logic
-    alert(`Signed in as ${email} (demo)`);
+    try {
+      setError("");
+      const res = await fetch(`/api/v1/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        const msg = data?.message || "Login failed";
+        setError(msg);
+        return;
+      }
+
+      // store token (if returned) and user
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+      } else {
+        localStorage.removeItem("token");
+      }
+      if (data?.user) localStorage.setItem("user", JSON.stringify(data.user));
+
+      // notify other parts of the app (same-tab) that auth changed
+      try {
+        window.dispatchEvent(new Event('authChange'));
+      } catch (e) {
+        // ignore
+      }
+
+      // redirect to dashboard
+      router.push("/dashboard");
+    } catch (err) {
+      console.error(err);
+      setError(err?.message || "Login error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,6 +94,8 @@ export default function LoginPage() {
 
               <Link href="/forgot" className="text-sm text-indigo-600">Forgot?</Link>
             </div>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
 
             <button
               type="submit"
