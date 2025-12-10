@@ -27,4 +27,3 @@ firebase-errors.log
 *.sqlite3
 dump.rdb
 thumbs.db
-/generated/prisma
