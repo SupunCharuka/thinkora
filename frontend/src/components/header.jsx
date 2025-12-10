@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -19,6 +19,42 @@ export default function Header() {
   }, []);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // read user from localStorage whenever pathname changes
+    function readUser() {
+      try {
+        const raw = localStorage.getItem('user');
+        if (raw) setUser(JSON.parse(raw));
+        else setUser(null);
+      } catch (e) {
+        setUser(null);
+      }
+    }
+
+    readUser();
+
+    // storage event for other tabs
+    function onStorage(e) {
+      if (!e.key || e.key === 'user' || e.key === 'token') readUser();
+    }
+
+    // custom event for same-tab updates
+    function onAuthChange() {
+      readUser();
+    }
+
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('authChange', onAuthChange);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('authChange', onAuthChange);
+    };
+  }, [pathname]);
+
+ 
 
   return (
     <header className={`py-6 transition-all duration-300 ${scrolled ? 'sticky top-0 z-40 py-2' : ''}`}>
@@ -59,8 +95,16 @@ export default function Header() {
           <div className="flex items-center gap-3">
             {/* Desktop auth links */}
             <div className="hidden md:flex items-center gap-3">
-              <Link href="/login" className="text-sm text-gray-700 hover:text-black">Sign in</Link>
-              <Link href="/signup" className="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700">Sign up</Link>
+              {user ? (
+                <>
+                  <Link href="/dashboard" className="text-sm text-gray-700 hover:text-black">Dashboard</Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="text-sm text-gray-700 hover:text-black">Sign in</Link>
+                  <Link href="/signup" className="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700">Sign up</Link>
+                </>
+              )}
             </div>
 
            
@@ -105,8 +149,16 @@ export default function Header() {
                   })}
                 </nav>
                 <div className="border-t border-gray-100 mt-2 pt-3 px-3">
-                  <Link href="/login" className="block px-3 py-2 rounded hover:bg-gray-50">Sign in</Link>
-                  <Link href="/signup" className="mt-2 inline-block w-full text-center px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Sign up</Link>
+                  {user ? (
+                    <>
+                      <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-gray-50">Dashboard</Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/login" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-gray-50">Sign in</Link>
+                      <Link href="/signup" onClick={() => setMenuOpen(false)} className="mt-2 inline-block w-full text-center px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Sign up</Link>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

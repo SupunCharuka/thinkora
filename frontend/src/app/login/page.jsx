@@ -37,6 +37,13 @@ export default function LoginPage() {
       }
       if (data?.user) localStorage.setItem("user", JSON.stringify(data.user));
 
+      // notify other parts of the app (same-tab) that auth changed
+      try {
+        window.dispatchEvent(new Event('authChange'));
+      } catch (e) {
+        // ignore
+      }
+
       // redirect to dashboard
       router.push("/dashboard");
     } catch (err) {
