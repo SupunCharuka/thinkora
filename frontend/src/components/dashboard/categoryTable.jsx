@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import CreateCategoryForm from '@/components/dashboard/createCategoryForm.jsx';
 import EditCategoryModal from './editCategoryModal.jsx';
+import ConfirmModal from './confirmModal.jsx';
 
 function formatDate(d) {
     try {
@@ -25,6 +26,32 @@ export default function CategoryTable({ refreshKey }) {
     const [sortDir, setSortDir] = useState('desc');
     const [showFilters, setShowFilters] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
+    const [confirm, setConfirm] = useState({ open: false, id: null, name: '' });
+    const [message, setMessage] = useState(null); // { type: 'success'|'error', text }
+
+    // helper: perform delete (called from confirm modal)
+    async function doDelete(id) {
+        try {
+            setDeletingId(id);
+            const res = await fetch(`/api/v1/categories/${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'same-origin' });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                setMessage({ type: 'error', text: data.message || 'Failed to delete' });
+                return false;
+            }
+            setMessage({ type: 'success', text: 'Category deleted' });
+            await load();
+            return true;
+        } catch (err) {
+            console.error('Delete failed', err);
+            setMessage({ type: 'error', text: 'Network error' });
+            return false;
+        } finally {
+            setDeletingId(null);
+            setConfirm({ open: false, id: null, name: '' });
+        }
+    }
 
     async function load() {
         setLoading(true);
@@ -45,6 +72,13 @@ export default function CategoryTable({ refreshKey }) {
     useEffect(() => {
         load();
     }, [refreshKey]);
+
+    // auto-dismiss message banner
+    useEffect(() => {
+        if (!message) return;
+        const t = setTimeout(() => setMessage(null), 3000);
+        return () => clearTimeout(t);
+    }, [message]);
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -125,6 +159,23 @@ export default function CategoryTable({ refreshKey }) {
                     )}
                 </EditCategoryModal>
 
+                {/* message banner */}
+                {message && (
+                    <div className={`mt-3 p-3 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>
+                        {message.text}
+                    </div>
+                )}
+
+                {/* confirm modal for delete */}
+                <ConfirmModal
+                    open={confirm.open}
+                    title={`Delete category`}
+                    message={`Delete category "${confirm.name}"? This cannot be undone.`}
+                    processing={deletingId === confirm.id}
+                    onCancel={() => setConfirm({ open: false, id: null, name: '' })}
+                    onConfirm={() => doDelete(confirm.id)}
+                />
+
                 {/* Mobile filters panel (render under the title on small screens) */}
                 {showFilters && (
                     <div id="mobile-filters" className="md:hidden mt-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
@@ -195,7 +246,13 @@ export default function CategoryTable({ refreshKey }) {
 
                                 <div className="mt-3 flex items-center justify-end gap-2">
                                     <button onClick={() => setEditingCategory(c)} className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900">Edit</button>
-                                    <button className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900 text-red-600">Delete</button>
+                                    <button
+                                        onClick={() => setConfirm({ open: true, id: c._id || c.id, name: c.name || '' })}
+                                        disabled={deletingId === (c._id || c.id)}
+                                        className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900 text-red-600"
+                                    >
+                                        {deletingId === (c._id || c.id) ? 'Deleting…' : 'Delete'}
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -256,8 +313,14 @@ export default function CategoryTable({ refreshKey }) {
 
                                         <td className="px-4 py-4 align-top text-right">
                                             <div className="inline-flex items-center gap-2">
-                                                <button onClick={() => setEditingCategory(c)} className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900">Edit</button>
-                                                <button className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900 text-red-600">Delete</button>
+                                                    <button onClick={() => setEditingCategory(c)} className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900">Edit</button>
+                                                    <button
+                                                        onClick={() => setConfirm({ open: true, id: c._id || c.id, name: c.name || '' })}
+                                                        disabled={deletingId === (c._id || c.id)}
+                                                        className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900 text-red-600"
+                                                    >
+                                                        {deletingId === (c._id || c.id) ? 'Deleting…' : 'Delete'}
+                                                    </button>
                                             </div>
                                         </td>
                                     </tr>

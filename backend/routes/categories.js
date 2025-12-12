@@ -86,4 +86,19 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Protected: delete category
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const cat = await Category.findById(id);
+    if (!cat) return res.status(404).json({ message: 'Category not found' });
+
+    await Category.deleteOne({ _id: id });
+    return res.json({ message: 'Deleted' });
+  } catch (err) {
+    console.error('Failed to delete category', err);
+    return res.status(500).json({ message: 'Failed to delete category' });
+  }
+});
+
 export default router;
