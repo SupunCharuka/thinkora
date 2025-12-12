@@ -56,6 +56,36 @@ export default function CreateBlogForm({ onCreated }) {
     return Object.keys(e).length === 0;
   }
 
+  function formatBytes(bytes) {
+    if (!bytes) return '';
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${(bytes / Math.pow(1024, i)).toFixed(i ? 1 : 0)} ${sizes[i]}`;
+  }
+
+  function handleFileSelect(files) {
+    const f = files && files[0];
+    if (f) {
+      setImage(f);
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+      setImagePreview(URL.createObjectURL(f));
+      // clear previous error for image
+      setErrors((prev) => ({ ...prev, image: undefined }));
+    } else {
+      setImage(null);
+      if (imagePreview) { URL.revokeObjectURL(imagePreview); setImagePreview(null); }
+    }
+  }
+
+  function handleRemoveImage() {
+    setImage(null);
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setStatus(null);
@@ -160,19 +190,48 @@ export default function CreateBlogForm({ onCreated }) {
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Image</label>
             <div className="mt-2">
-              <input type="file" accept="image/*" onChange={(ev) => {
-                const f = ev.target.files && ev.target.files[0];
-                if (f) {
-                  setImage(f);
-                  if (imagePreview) URL.revokeObjectURL(imagePreview);
-                  setImagePreview(URL.createObjectURL(f));
-                } else {
-                  setImage(null);
-                  if (imagePreview) { URL.revokeObjectURL(imagePreview); setImagePreview(null); }
-                }
-              }} className="block w-full text-sm text-gray-700 dark:text-gray-300" />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(ev) => handleFileSelect(ev?.target?.files)}
+                className="hidden"
+                aria-hidden="true"
+              />
+
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current && fileInputRef.current.click(); }}
+                onDrop={(e) => { e.preventDefault(); handleFileSelect(e.dataTransfer.files); }}
+                onDragOver={(e) => e.preventDefault()}
+                className={`mt-2 flex items-center justify-center flex-col gap-2 border-2 border-dashed rounded-lg p-4 cursor-pointer transition ${errors.image ? 'border-red-300 bg-red-50 dark:bg-red-900' : 'border-gray-200 bg-gray-50 dark:bg-gray-900 hover:border-indigo-400'}`}
+              >
+                {!imagePreview ? (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M16 3v4M8 3v4m-6 8h20" />
+                    </svg>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Click or drag an image here</div>
+                    <div className="text-xs text-gray-400">PNG, JPG, GIF — max {Math.round((parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE || '10485760', 10) / 1024 / 1024) * 10) / 10}MB</div>
+                  </>
+                ) : (
+                  <div className="w-full flex items-center gap-3">
+                    <img src={imagePreview} alt="preview" className="h-20 w-20 object-cover rounded-md border" />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-800 dark:text-gray-200">{image && image.name}</div>
+                      <div className="text-xs text-gray-500">{image && formatBytes(image.size)}</div>
+                      <div className="mt-2 flex gap-2">
+                        <button type="button" onClick={() => fileInputRef.current && fileInputRef.current.click()} className="text-sm px-2 py-1 rounded border bg-white dark:bg-gray-800">Change</button>
+                        <button type="button" onClick={handleRemoveImage} className="text-sm px-2 py-1 rounded border bg-red-50 text-red-700">Remove</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {errors.image && <p className="mt-1 text-xs text-red-600">{errors.image}</p>}
-              {imagePreview && <img src={imagePreview} alt="preview" className="mt-2 h-32 object-cover rounded-md" />}
             </div>
           </div>
 
