@@ -17,6 +17,7 @@ export default function CreateBlogForm({ onCreated }) {
   const [excerpt, setExcerpt] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
+  const [categories, setCategories] = useState([]);
   const [status, setStatus] = useState(null);
   const [autoSlug, setAutoSlug] = useState(true);
   const [errors, setErrors] = useState({});
@@ -25,10 +26,27 @@ export default function CreateBlogForm({ onCreated }) {
     if (autoSlug) setSlug(generateSlug(title));
   }, [title, autoSlug]);
 
+  useEffect(() => {
+    // Load categories from backend (public endpoint)
+    async function loadCategories() {
+      try {
+        const base = process.env.NEXT_PUBLIC_API_URL || '';
+        const res = await fetch(`${base}/api/v1/categories`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setCategories(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Failed to load categories', err);
+      }
+    }
+    loadCategories();
+  }, []);
+
   function validate() {
     const e = {};
     if (!title || !title.toString().trim()) e.title = 'Title is required';
     if (!content || !content.toString().trim()) e.content = 'Content is required';
+    if (!category || !String(category).trim()) e.category = 'Category is required';
     if (slug && !/^[a-z0-9\-_]+$/.test(slug)) e.slug = 'Slug may only contain lowercase letters, numbers, - and _';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -99,6 +117,19 @@ export default function CreateBlogForm({ onCreated }) {
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Excerpt</label>
             <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} className="mt-2 block w-full rounded-md border border-gray-200 bg-gray-50 dark:bg-gray-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" rows={2} />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Category</label>
+            <div className="mt-2">
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className={`block w-full rounded-md border px-3 py-2 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 ${errors.category ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`}>
+                <option value="">Select a category</option>
+                {categories.map((c) => (
+                  <option key={c._id || c.id} value={c._id || c.id}>{c.name}</option>
+                ))}
+              </select>
+              {errors.category && <p className="mt-1 text-xs text-red-600">{errors.category}</p>}
+            </div>
           </div>
 
           <div>

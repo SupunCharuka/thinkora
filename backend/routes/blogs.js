@@ -46,6 +46,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
     if (!title || !title.toString().trim()) return res.status(400).json({ message: 'Title is required' });
     if (!content || !content.toString().trim()) return res.status(400).json({ message: 'Content is required' });
+    if (!categoryId) return res.status(400).json({ message: 'Category is required' });
 
     const slug = (rawSlug && String(rawSlug).trim()) || generateSlug(title);
 
@@ -53,12 +54,9 @@ router.post('/', authMiddleware, async (req, res) => {
     const existing = await Blog.findOne({ slug });
     if (existing) return res.status(409).json({ message: 'Slug already exists' });
 
-    // optional: validate category exists
-    let category = null;
-    if (categoryId) {
-      category = await Category.findById(categoryId);
-      if (!category) return res.status(400).json({ message: 'Invalid category' });
-    }
+    // validate category exists
+    const category = await Category.findById(categoryId);
+    if (!category) return res.status(400).json({ message: 'Invalid category' });
 
     const blog = new Blog({
       title: title.trim(),
@@ -66,7 +64,7 @@ router.post('/', authMiddleware, async (req, res) => {
       excerpt: excerpt && String(excerpt).trim(),
       content: content.trim(),
       author: req.userId || null,
-      category: category ? category._id : null,
+      category: category._id,
       published: typeof published === 'boolean' ? published : true,
     });
 
