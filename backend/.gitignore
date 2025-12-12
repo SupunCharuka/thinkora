@@ -27,3 +27,6 @@ firebase-errors.log
 *.sqlite3
 dump.rdb
 thumbs.db
+*.pem
+*.p12
+uploads

@@ -1,9 +1,41 @@
 import express from 'express';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import multer from 'multer';
 import Blog from '../models/Blog.js';
 import Category from '../models/Category.js';
 import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Multer setup for uploads
+// Resolve `uploads` directory relative to this file to avoid issues when cwd differs.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadDir = path.join(__dirname, '..', 'uploads');
+
+// Ensure upload directory exists
+try {
+  fs.mkdirSync(uploadDir, { recursive: true });
+} catch (err) {
+  console.error('Failed to create upload directory', uploadDir, err);
+}
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const safeName = file.originalname.replace(/[^a-z0-9.\-\_]/gi, '-');
+    cb(null, `${Date.now()}-${safeName}`);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (!file.mimetype.startsWith('image/')) return cb(new Error('Only image files are allowed'), false);
+  cb(null, true);
+};
+
+const maxUploadSize = parseInt(process.env.MAX_UPLOAD_SIZE || String(10 * 1024 * 1024), 10); // default 10MB
+const upload = multer({ storage, fileFilter, limits: { fileSize: maxUploadSize } });
 
 const generateSlug = (str = '') =>
   str
@@ -39,14 +71,18 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Protected: create blog
-router.post('/', authMiddleware, async (req, res) => {
+// Protected: create blog (accept multipart form with image)
+router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
   try {
     const { title, slug: rawSlug, excerpt, content, category: categoryId, published } = req.body || {};
+
+    // Multer file: req.file
+    const file = req.file;
 
     if (!title || !title.toString().trim()) return res.status(400).json({ message: 'Title is required' });
     if (!content || !content.toString().trim()) return res.status(400).json({ message: 'Content is required' });
     if (!categoryId) return res.status(400).json({ message: 'Category is required' });
+    if (!file) return res.status(400).json({ message: 'Image is required' });
 
     const slug = (rawSlug && String(rawSlug).trim()) || generateSlug(title);
 
@@ -63,6 +99,7 @@ router.post('/', authMiddleware, async (req, res) => {
       slug,
       excerpt: excerpt && String(excerpt).trim(),
       content: content.trim(),
+      image: `/uploads/${file.filename}`,
       author: req.userId || null,
       category: category._id,
       published: typeof published === 'boolean' ? published : true,

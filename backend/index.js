@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { PORT, mongoDBURL, FRONTEND_URL } from './config.js';
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
@@ -12,6 +14,11 @@ import authMiddleware from './middleware/auth.js';
 const app = express();
 
 app.use(express.json());
+
+// Serve uploaded files from /uploads
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // CORS configuration
 app.use(cors({
