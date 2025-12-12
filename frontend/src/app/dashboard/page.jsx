@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/dashboard/sidebar";
 import Topbar from "@/components/dashboard/topbar";
 import StatCard from "@/components/dashboard/statCard";
+import CreateCategoryForm from '../../components/dashboard/createCategoryForm';
 import BlogsTable from "@/components/dashboard/blogsTable";
 import blogs from "@/data/blogs";
 import { useRouter } from 'next/navigation';
