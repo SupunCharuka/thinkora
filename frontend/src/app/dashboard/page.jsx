@@ -1,11 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Sidebar from "@/components/dashboard/sidebar";
 import Topbar from "@/components/dashboard/topbar";
 import StatCard from "@/components/dashboard/statCard";
 import BlogsTable from "@/components/dashboard/blogsTable";
 import blogs from "@/data/blogs";
-import { useRouter } from 'next/navigation';
+import useDashboardAuth from '@/hooks/useDashboardAuth';
 
 
 
@@ -15,28 +15,7 @@ export default function DashboardPage() {
   const latest = blogs.slice().sort((a, b) => (a.date < b.date ? 1 : -1))[0];
 
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [backendMsg, setBackendMsg] = useState(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    // Fetch protected dashboard data from our frontend proxy API
-    async function load() {
-      try {
-        const res = await fetch('/api/v1/dashboard', { method: 'GET', credentials: 'same-origin' });
-        if (res.status === 401) {
-          // Not authenticated — redirect to login
-          router.push('/login');
-          return;
-        }
-        const data = await res.json();
-        setBackendMsg(data.message || JSON.stringify(data));
-      } catch (err) {
-        console.error('Failed to load dashboard data', err);
-      }
-    }
-
-    load();
-  }, [router]);
+  const { message: backendMsg, loading, error } = useDashboardAuth();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -54,11 +33,19 @@ export default function DashboardPage() {
             <StatCard title="Latest blog" value={latest?.title || "—"} />
           </div>
 
-          {backendMsg && (
+          {loading ? (
+            <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900 rounded">
+              Loading dashboard data...
+            </div>
+          ) : error ? (
+            <div className="mt-6 p-4 bg-red-50 dark:bg-red-900 rounded">
+              <strong>Error:</strong> <span>{error}</span>
+            </div>
+          ) : backendMsg ? (
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded">
               <strong>Backend:</strong> <span>{backendMsg}</span>
             </div>
-          )}
+          ) : null}
 
           <section className="mt-8">
             <h2 className="text-lg font-semibold">Blogs</h2>
