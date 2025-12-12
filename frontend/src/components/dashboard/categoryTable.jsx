@@ -1,5 +1,7 @@
 "use client";
 import React, { useEffect, useState, useMemo } from 'react';
+import CreateCategoryForm from '@/components/dashboard/createCategoryForm.jsx';
+import EditCategoryModal from './editCategoryModal.jsx';
 
 function formatDate(d) {
     try {
@@ -22,6 +24,7 @@ export default function CategoryTable({ refreshKey }) {
     const [sortBy, setSortBy] = useState('createdAt');
     const [sortDir, setSortDir] = useState('desc');
     const [showFilters, setShowFilters] = useState(false);
+    const [editingCategory, setEditingCategory] = useState(null);
 
     async function load() {
         setLoading(true);
@@ -108,6 +111,19 @@ export default function CategoryTable({ refreshKey }) {
 
                     
                 </div>
+                {/* Edit modal (popup) */}
+                <EditCategoryModal open={!!editingCategory} onClose={() => setEditingCategory(null)} title={editingCategory ? `Edit: ${editingCategory.name}` : 'Edit category'}>
+                    {editingCategory && (
+                        <CreateCategoryForm
+                            category={editingCategory}
+                            showHeader={false}
+                            onUpdated={(cat) => {
+                                setEditingCategory(null);
+                                load();
+                            }}
+                        />
+                    )}
+                </EditCategoryModal>
 
                 {/* Mobile filters panel (render under the title on small screens) */}
                 {showFilters && (
@@ -178,7 +194,7 @@ export default function CategoryTable({ refreshKey }) {
                                 </div>
 
                                 <div className="mt-3 flex items-center justify-end gap-2">
-                                    <button className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900">Edit</button>
+                                    <button onClick={() => setEditingCategory(c)} className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900">Edit</button>
                                     <button className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900 text-red-600">Delete</button>
                                 </div>
                             </div>
@@ -240,7 +256,7 @@ export default function CategoryTable({ refreshKey }) {
 
                                         <td className="px-4 py-4 align-top text-right">
                                             <div className="inline-flex items-center gap-2">
-                                                <button className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900">Edit</button>
+                                                <button onClick={() => setEditingCategory(c)} className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900">Edit</button>
                                                 <button className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900 text-red-600">Delete</button>
                                             </div>
                                         </td>

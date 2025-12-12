@@ -11,10 +11,10 @@ function generateSlug(str = '') {
     .replace(/-+/g, '-');
 }
 
-export default function CreateCategoryForm({ onCreated }) {
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [description, setDescription] = useState('');
+export default function CreateCategoryForm({ onCreated, category, onUpdated, showHeader = true }) {
+  const [name, setName] = useState(category?.name || '');
+  const [slug, setSlug] = useState(category?.slug || '');
+  const [description, setDescription] = useState(category?.description || '');
   const [status, setStatus] = useState(null); // null | saving | created | error | message string
   const [autoSlug, setAutoSlug] = useState(true);
   const [errors, setErrors] = useState({});
@@ -24,6 +24,13 @@ export default function CreateCategoryForm({ onCreated }) {
       setSlug(generateSlug(name));
     }
   }, [name, autoSlug]);
+
+  // Keep state in sync if category prop changes (useful when opening modal)
+  useEffect(() => {
+    setName(category?.name || '');
+    setSlug(category?.slug || '');
+    setDescription(category?.description || '');
+  }, [category]);
 
   function validate() {
     const e = {};
@@ -40,28 +47,56 @@ export default function CreateCategoryForm({ onCreated }) {
     setStatus('saving');
 
     try {
-      const res = await fetch('/api/v1/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ name: name.trim(), slug: slug.trim(), description: description.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setStatus(data.message || 'Failed to create');
-        return;
+      if (category && (category._id || category.id)) {
+        // Update existing
+        const id = category._id || category.id;
+        const res = await fetch(`/api/v1/categories/${encodeURIComponent(id)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ name: name.trim(), slug: slug.trim(), description: description.trim() }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setStatus(data.message || 'Failed to update');
+          return;
+        }
+        setStatus('updated');
+        // Show success message briefly before notifying parent (so user sees the message in the modal)
+        if (typeof onUpdated === 'function') {
+          setTimeout(() => {
+            try {
+              onUpdated(data);
+            } catch (e) {
+              console.error('onUpdated handler error', e);
+            }
+          }, 700);
+        }
+      } else {
+        // Create new
+        const res = await fetch('/api/v1/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ name: name.trim(), slug: slug.trim(), description: description.trim() }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setStatus(data.message || 'Failed to create');
+          return;
+        }
+        setStatus('created');
+        if (typeof onCreated === 'function') onCreated(data);
+        // show success then reset
+        setTimeout(() => {
+          setName('');
+          setSlug('');
+          setDescription('');
+          setStatus(null);
+        }, 1000);
       }
-      setStatus('created');
-      if (typeof onCreated === 'function') onCreated(data);
-      // show success then reset
-      setTimeout(() => {
-        setName('');
-        setSlug('');
-        setDescription('');
-        setStatus(null);
-      }, 1000);
     } catch (err) {
-      console.error('Failed to create category', err);
+      console.error('Failed to submit category', err);
       setStatus('Network error');
     }
   }
@@ -69,23 +104,25 @@ export default function CreateCategoryForm({ onCreated }) {
   return (
     <div className="mt-6 max-w">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
-        <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex items-start gap-4">
-          <div className="flex-shrink-0 h-12 w-12 rounded-md bg-indigo-50 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-200">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
-            </svg>
+        {showHeader && (
+          <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex items-start gap-4">
+            <div className="flex-shrink-0 h-12 w-12 rounded-md bg-indigo-50 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-200">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">{category ? 'Edit category' : 'Create category'}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{category ? 'Update category details.' : 'Add a new category for posts. Slug is used in URLs.'}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold">Create category</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Add a new category for posts. Slug is used in URLs.</p>
-          </div>
-        </div>
+        )}
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {status === 'created' && (
-            <div className="p-3 rounded-md bg-green-50 dark:bg-green-900 text-green-800 dark:text-green-200">Category created successfully</div>
+          {(status === 'created' || status === 'updated') && (
+            <div className="p-3 rounded-md bg-green-50 dark:bg-green-900 text-green-800 dark:text-green-200">{status === 'created' ? 'Category created successfully' : 'Category updated successfully'}</div>
           )}
-          {status && status !== 'saving' && status !== 'created' && typeof status === 'string' && (
+          {status && status !== 'saving' && status !== 'created' && status !== 'updated' && typeof status === 'string' && (
             <div className="p-3 rounded-md bg-red-50 dark:bg-red-900 text-red-800 dark:text-red-200">{status}</div>
           )}
 
@@ -149,13 +186,25 @@ export default function CreateCategoryForm({ onCreated }) {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                   </svg>
                 ) : (
-                  'Create'
+                  category ? 'Update' : 'Create'
                 )}
               </button>
 
               <button
                 type="button"
-                onClick={() => { setName(''); setSlug(''); setDescription(''); setStatus(null); setErrors({}); }}
+                onClick={() => {
+                  if (category) {
+                    setName(category.name || '');
+                    setSlug(category.slug || '');
+                    setDescription(category.description || '');
+                  } else {
+                    setName('');
+                    setSlug('');
+                    setDescription('');
+                  }
+                  setStatus(null);
+                  setErrors({});
+                }}
                 className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800 text-sm"
               >
                 Reset
