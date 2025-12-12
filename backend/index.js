@@ -5,6 +5,7 @@ import { PORT, mongoDBURL, FRONTEND_URL } from './config.js';
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
 import categoriesRoutes from './routes/categories.js';
+import blogsRoutes from './routes/blogs.js';
 import authMiddleware from './middleware/auth.js';
 
 
@@ -29,6 +30,9 @@ app.use('/api/v1/dashboard', authMiddleware, dashboardRoutes);
 
 // Categories: public list, protected create handled inside router
 app.use('/api/v1/categories', categoriesRoutes);
+
+// Blogs: public list + protected create
+app.use('/api/v1/blogs', blogsRoutes);
 
 // Start server after connecting to MongoDB
 mongoose

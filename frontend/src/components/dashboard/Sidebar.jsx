@@ -36,10 +36,11 @@ export default function Sidebar({ mobile = false, onClose }) {
               <span className="text-sm font-medium">Create category</span>
             </Link>
           </li>
+          
           <li>
-            <Link href="/" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5 dark:hover:bg-white/5">
-              <span className="w-2 h-2 rounded-full bg-slate-400" />
-              <span className="text-sm font-medium">View site</span>
+            <Link href="/dashboard/create-blog" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5 dark:hover:bg-white/5">
+              <span className="w-2 h-2 rounded-full bg-pink-400" />
+              <span className="text-sm font-medium">Create blog</span>
             </Link>
           </li>
         </ul>
