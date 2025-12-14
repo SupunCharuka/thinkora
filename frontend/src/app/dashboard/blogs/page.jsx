@@ -24,8 +24,7 @@ export default function ViewBlogsPage() {
     const [rowsPerPage, setRowsPerPage] = useState(9);
     const [filters, setFilters] = useState({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        categoryName: { value: null, matchMode: FilterMatchMode.EQUALS },
-        published: { value: null, matchMode: FilterMatchMode.EQUALS }
+        categoryName: { value: null, matchMode: FilterMatchMode.EQUALS }
     });
     const fetchBlogs = async (signal) => {
         setLoadingBlogs(true);
@@ -88,7 +87,7 @@ export default function ViewBlogsPage() {
     // visibility options for dropdown filter
     const visibilityOptions = useMemo(() => (
         [
-            { label: 'All', value: null },
+            { label: 'All', value: 'all' },
             { label: 'Public', value: true },
             { label: 'Private', value: false }
         ]
@@ -158,12 +157,21 @@ export default function ViewBlogsPage() {
                 setFilters(prev => ({ ...prev, categoryName: { value: val, matchMode: FilterMatchMode.EQUALS } }));
             }} placeholder="Filter by category" className="w-48" />
 
-            <Dropdown options={visibilityOptions} value={filters.published?.value ?? null} onChange={(e) => {
+            <Dropdown options={visibilityOptions} value={typeof filters.published !== 'undefined' ? filters.published.value : 'all'} onChange={(e) => {
                 const val = e.value;
-                setFilters(prev => ({ ...prev, published: { value: val, matchMode: FilterMatchMode.EQUALS } }));
-            }} placeholder="Visibility" className="w-36" />
+                setFilters(prev => {
+                    const next = { ...prev };
+                    if (val === 'all') {
+                        // clear the published filter to show all
+                        delete next.published;
+                    } else {
+                        next.published = { value: val, matchMode: FilterMatchMode.EQUALS };
+                    }
+                    return next;
+                });
+            }} placeholder="Visibility" className="w-36" optionLabel="label" optionValue="value" />
 
-            <Button icon="pi pi-filter-slash" className="p-button-text" onClick={() => setFilters({ global: { value: null, matchMode: FilterMatchMode.CONTAINS }, categoryName: { value: null, matchMode: FilterMatchMode.EQUALS }, published: { value: null, matchMode: FilterMatchMode.EQUALS } })} aria-label="Clear filters" />
+            <Button icon="pi pi-filter-slash" className="p-button-text" onClick={() => setFilters({ global: { value: null, matchMode: FilterMatchMode.CONTAINS }, categoryName: { value: null, matchMode: FilterMatchMode.EQUALS } })} aria-label="Clear filters" />
         </div>
     );
 
@@ -226,7 +234,7 @@ export default function ViewBlogsPage() {
 
                                         <Column field="createdTimestamp" header="Created" body={createdTemplate} sortable style={{ width: '140px' }} />
 
-                                        <Column field="published" header="Visibility" body={visibilityTemplate} sortable style={{ width: '120px' }} />
+                                        <Column field="published" header="Visibility" body={visibilityTemplate} style={{ width: '120px' }} />
 
                                         <Column header="Actions" body={actionTemplate} style={{ width: '140px' }} />
                                     </DataTable>
