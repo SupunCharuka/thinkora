@@ -23,6 +23,7 @@ export default function CreateBlogForm({ onCreated }) {
   const [category, setCategory] = useState('');
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [published, setPublished] = useState(true);
   const fileInputRef = useRef(null);
   const [categories, setCategories] = useState([]);
   const [status, setStatus] = useState(null);
@@ -104,6 +105,7 @@ export default function CreateBlogForm({ onCreated }) {
       form.append('excerpt', excerpt.trim());
       form.append('content', content.trim());
       form.append('category', category);
+      form.append('published', String(published));
       if (image) form.append('image', image);
 
       const headers = {};
@@ -248,6 +250,17 @@ export default function CreateBlogForm({ onCreated }) {
             {errors.content && <p className="mt-1 text-xs text-red-600">{errors.content}</p>}
           </div>
 
+           <div>
+            <label className="block text-xs font-medium text-gray-700">Visibility</label>
+            <div className="mt-2">
+              <select value={String(published)} onChange={(e) => setPublished(e.target.value === 'true')} className="block w-48 rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 border-gray-200 focus:ring-indigo-500">
+                <option value="true">Public</option>
+                <option value="false">Private</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">Private posts are only visible to you when signed in.</p>
+            </div>
+          </div>
+
           <div className="flex items-center gap-3">
             <button type="submit" disabled={status === 'saving'} className="inline-flex items-center gap-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2">
               {status === 'saving' ? <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg> : 'Create'}
@@ -255,10 +268,13 @@ export default function CreateBlogForm({ onCreated }) {
             <button type="button" onClick={() => {
               setTitle(''); setSlug(''); setExcerpt(''); setContent('');
               setStatus(null); setErrors({}); setImage(null);
+              setPublished(true);
               if (imagePreview) { URL.revokeObjectURL(imagePreview); setImagePreview(null); }
               if (fileInputRef.current) fileInputRef.current.value = '';
             }} className="px-3 py-2 rounded-md border bg-white text-sm">Reset</button>
           </div>
+
+         
 
           {status === 'created' && <div className="p-3 rounded-md bg-green-50 text-green-800">Blog created successfully</div>}
           {status && status !== 'saving' && status !== 'created' && typeof status === 'string' && (

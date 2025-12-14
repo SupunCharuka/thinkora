@@ -24,7 +24,8 @@ export default function ViewBlogsPage() {
     const [rowsPerPage, setRowsPerPage] = useState(9);
     const [filters, setFilters] = useState({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        categoryName: { value: null, matchMode: FilterMatchMode.EQUALS }
+        categoryName: { value: null, matchMode: FilterMatchMode.EQUALS },
+        published: { value: null, matchMode: FilterMatchMode.EQUALS }
     });
     const fetchBlogs = async (signal) => {
         setLoadingBlogs(true);
@@ -42,7 +43,8 @@ export default function ViewBlogsPage() {
                 ...b,
                 // normalize category name and a numeric timestamp for reliable sorting
                 categoryName: b?.category?.name || b?.category || 'Uncategorized',
-                createdTimestamp: b?.createdAt ? new Date(b.createdAt).getTime() : 0
+                createdTimestamp: b?.createdAt ? new Date(b.createdAt).getTime() : 0,
+                published: b?.published === undefined ? true : !!b.published
             }));
             setBlogs(mine);
         } catch (err) {
@@ -83,6 +85,15 @@ export default function ViewBlogsPage() {
         return Array.from(setCat).map(c => ({ label: c, value: c }));
     }, [blogs]);
 
+    // visibility options for dropdown filter
+    const visibilityOptions = useMemo(() => (
+        [
+            { label: 'All', value: null },
+            { label: 'Public', value: true },
+            { label: 'Private', value: false }
+        ]
+    ), [blogs]);
+
     // creative UI helpers
     const getCategoryColor = (name) => {
         if (!name) return 'bg-gray-200 text-gray-800';
@@ -106,6 +117,16 @@ export default function ViewBlogsPage() {
             <span className="w-2 h-2 rounded-full bg-black inline-block opacity-70" />
             {row.categoryName}
         </span>
+    );
+
+    const visibilityTemplate = (row) => (
+        <div className="text-sm">
+            {row.published ? (
+                <span className="inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Public</span>
+            ) : (
+                <span className="inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Private</span>
+            )}
+        </div>
     );
 
     const createdTemplate = (row) => (
@@ -137,7 +158,12 @@ export default function ViewBlogsPage() {
                 setFilters(prev => ({ ...prev, categoryName: { value: val, matchMode: FilterMatchMode.EQUALS } }));
             }} placeholder="Filter by category" className="w-48" />
 
-            <Button icon="pi pi-filter-slash" className="p-button-text" onClick={() => setFilters({ global: { value: null, matchMode: FilterMatchMode.CONTAINS }, categoryName: { value: null, matchMode: FilterMatchMode.EQUALS } })} aria-label="Clear filters" />
+            <Dropdown options={visibilityOptions} value={filters.published?.value ?? null} onChange={(e) => {
+                const val = e.value;
+                setFilters(prev => ({ ...prev, published: { value: val, matchMode: FilterMatchMode.EQUALS } }));
+            }} placeholder="Visibility" className="w-36" />
+
+            <Button icon="pi pi-filter-slash" className="p-button-text" onClick={() => setFilters({ global: { value: null, matchMode: FilterMatchMode.CONTAINS }, categoryName: { value: null, matchMode: FilterMatchMode.EQUALS }, published: { value: null, matchMode: FilterMatchMode.EQUALS } })} aria-label="Clear filters" />
         </div>
     );
 
@@ -199,6 +225,8 @@ export default function ViewBlogsPage() {
                                         <Column field="categoryName" header="Category" body={categoryTemplate} sortable />
 
                                         <Column field="createdTimestamp" header="Created" body={createdTemplate} sortable style={{ width: '140px' }} />
+
+                                        <Column field="published" header="Visibility" body={visibilityTemplate} sortable style={{ width: '120px' }} />
 
                                         <Column header="Actions" body={actionTemplate} style={{ width: '140px' }} />
                                     </DataTable>

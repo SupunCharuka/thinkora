@@ -3,6 +3,8 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../config.js';
 import Blog from '../models/Blog.js';
 import Category from '../models/Category.js';
 import authMiddleware from '../middleware/auth.js';
@@ -46,10 +48,10 @@ const generateSlug = (str = '') =>
     .replace(/[^a-z0-9-_]/g, '')
     .replace(/-+/g, '-');
 
-// Public: list blogs
+// Public: list blogs (only published)
 router.get('/', async (req, res) => {
   try {
-    const blogs = await Blog.find({}).sort({ createdAt: -1 }).populate('category', 'name slug').populate('author', 'name email');
+    const blogs = await Blog.find({ published: true }).sort({ createdAt: -1 }).populate('category', 'name slug').populate('author', 'name email');
     return res.json(blogs);
   } catch (err) {
     console.error('Failed to list blogs', err);
@@ -57,13 +59,36 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Public: get by id or slug
+// Public: get by id or slug (respect unpublished/private)
 router.get('/:id', async (req, res) => {
   try {
     const id = req.params.id;
     const query = id.match(/^[0-9a-fA-F]{24}$/) ? { _id: id } : { slug: id };
     const blog = await Blog.findOne(query).populate('category', 'name slug').populate('author', 'name email');
     if (!blog) return res.status(404).json({ message: 'Blog not found' });
+
+    // If not published, only the author may view it
+    if (!blog.published) {
+      let token = null;
+      const rawAuth = (req.headers.authorization || req.headers.Authorization || '').toString();
+      if (rawAuth) {
+        const parts = rawAuth.split(' ').filter(Boolean);
+        if (parts.length === 2 && /^Bearer$/i.test(parts[0])) token = parts[1];
+        else if (parts.length === 1) token = parts[0];
+      }
+      if (!token && req.cookies && typeof req.cookies.token === 'string') token = req.cookies.token;
+
+      try {
+        if (!token) throw new Error('no token');
+        const payload = jwt.verify(token, JWT_SECRET);
+        const userId = payload && payload.id ? String(payload.id) : null;
+        const authorId = blog.author && blog.author._id ? String(blog.author._id) : String(blog.author);
+        if (!userId || userId !== authorId) return res.status(404).json({ message: 'Blog not found' });
+      } catch (err) {
+        return res.status(404).json({ message: 'Blog not found' });
+      }
+    }
+
     return res.json(blog);
   } catch (err) {
     console.error('Failed to get blog', err);
@@ -94,6 +119,9 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
     const category = await Category.findById(categoryId);
     if (!category) return res.status(400).json({ message: 'Invalid category' });
 
+    // coerce published to boolean (form values may be strings)
+    const publishedBool = (published === false || published === 'false' || published === '0' || published === 0) ? false : (published === true || published === 'true' || published === '1' || published === 1) ? true : true;
+
     const blog = new Blog({
       title: title.trim(),
       slug,
@@ -102,7 +130,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
       image: `/uploads/${file.filename}`,
       author: req.userId || null,
       category: category._id,
-      published: typeof published === 'boolean' ? published : true,
+      published: publishedBool,
     });
 
     await blog.save();
