@@ -8,10 +8,30 @@ import useDashboardAuth from '@/hooks/useDashboardAuth';
 
 export default function ViewBlogsPage() {
     const { loading: checking, data } = useDashboardAuth();
-    const [refreshKey, setRefreshKey] = useState(0);
     const [blogs, setBlogs] = useState([]);
     const [loadingBlogs, setLoadingBlogs] = useState(false);
     const [error, setError] = useState(null);
+    const fetchBlogs = async (signal) => {
+        setLoadingBlogs(true);
+        setError(null);
+        try {
+            const res = await fetch('/api/v1/dashboard/blogs', { credentials: 'include' });
+            if (!res.ok) throw new Error(`Failed to load blogs (${res.status})`);
+            const all = await res.json();
+            if (signal && signal.aborted) return;
+            const userId = String(data.userId);
+            const mine = (all || []).filter(b => {
+                const authorId = b?.author?._id || b?.author || null;
+                return authorId && String(authorId) === userId;
+            });
+            setBlogs(mine);
+        } catch (err) {
+            setError(err.message || 'Failed to load blogs');
+        } finally {
+            setLoadingBlogs(false);
+        }
+    };
+
     useEffect(() => {
         if (checking) return;
         if (!data || !data.userId) {
@@ -19,31 +39,10 @@ export default function ViewBlogsPage() {
             return;
         }
 
-        let cancelled = false;
-        const load = async () => {
-            setLoadingBlogs(true);
-            setError(null);
-                try {
-                const res = await fetch('/api/v1/dashboard/blogs', { credentials: 'include' });
-                if (!res.ok) throw new Error(`Failed to load blogs (${res.status})`);
-                const all = await res.json();
-                if (cancelled) return;
-                const userId = String(data.userId);
-                const mine = (all || []).filter(b => {
-                    const authorId = b?.author?._id || b?.author || null;
-                    return authorId && String(authorId) === userId;
-                });
-                setBlogs(mine);
-            } catch (err) {
-                if (!cancelled) setError(err.message || 'Failed to load blogs');
-            } finally {
-                if (!cancelled) setLoadingBlogs(false);
-            }
-        };
-
-        load();
-        return () => { cancelled = true; };
-    }, [checking, data, refreshKey]);
+        const controller = new AbortController();
+        fetchBlogs(controller.signal);
+        return () => controller.abort();
+    }, [checking, data]);
 
     if (checking) {
         return (
@@ -62,14 +61,7 @@ export default function ViewBlogsPage() {
                     <div className="mt-6">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold">My Blogs</h2>
-                            <div>
-                                <button
-                                    onClick={() => setRefreshKey(k => k + 1)}
-                                    className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm"
-                                >
-                                    Refresh
-                                </button>
-                            </div>
+                            
                         </div>
 
                         <div className="bg-white shadow rounded-md p-4">
