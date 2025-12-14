@@ -140,6 +140,33 @@ export default function ViewBlogsPage() {
             <Link href={`/dashboard/create-blog?edit=${row._id || row.slug}`}>
                 <Button icon="pi pi-pencil" className="p-button-sm p-button-help" aria-label={`Edit ${row.title}`} />
             </Link>
+            <Button icon={row.published ? 'pi pi-lock-open' : 'pi pi-lock'} className="p-button-sm p-button-secondary" aria-label={`Toggle visibility ${row.title}`} onClick={async () => {
+                try {
+                    const id = row._id || row.id || row.slug;
+                    if (!id || String(id) === 'undefined') {
+                        console.error('Toggle aborted: invalid id', id, row);
+                        return;
+                    }
+                    const urlId = encodeURIComponent(String(id));
+                    console.log('Toggling visibility for id', id);
+                    const res = await fetch(`/api/v1/dashboard/blogs/${urlId}/publish`, {
+                        method: 'PATCH',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ published: !row.published, id }),
+                    });
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        console.error('Failed to toggle visibility', err);
+                        return;
+                    }
+                    const updated = await res.json();
+                    // update local state
+                    setBlogs(prev => prev.map(b => (String(b._id || b.id) === String(updated._id || updated.id) ? ({ ...b, published: !!updated.published }) : b)));
+                } catch (err) {
+                    console.error('Toggle error', err);
+                }
+            }} />
         </div>
     );
 
