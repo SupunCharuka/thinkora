@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { PORT, mongoDBURL, FRONTEND_URL } from './config.js';
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
+import dashboardBlogsRoutes from './routes/dashboardBlogs.js';
 import categoriesRoutes from './routes/categories.js';
 import blogsRoutes from './routes/blogs.js';
 import authMiddleware from './middleware/auth.js';
@@ -34,6 +35,8 @@ app.use('/api/v1/auth', authRoutes);
 
 // Dashboard (protected)
 app.use('/api/v1/dashboard', authMiddleware, dashboardRoutes);
+// Dashboard: user's blogs (protected)
+app.use('/api/v1/dashboard/blogs', authMiddleware, dashboardBlogsRoutes);
 
 // Categories: public list, protected create handled inside router
 app.use('/api/v1/categories', categoriesRoutes);
