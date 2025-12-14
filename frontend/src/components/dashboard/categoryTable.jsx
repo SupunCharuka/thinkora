@@ -97,7 +97,7 @@ export default function CategoryTable({ refreshKey }) {
 
     return (
         <div className="mt-6 max-w">
-            <div className="p-5 bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+            <div className="p-5 bg-white shadow-lg rounded-lg overflow-hidden">
                 <div className="flex items-center justify-between mb-3">
                     <div>
                         <h3 className="text-lg font-semibold">Categories</h3>
@@ -109,7 +109,7 @@ export default function CategoryTable({ refreshKey }) {
                         <div className="md:hidden">
                             <button
                                 onClick={() => setShowFilters((s) => !s)}
-                                className="px-3 py-2 rounded-md border bg-white dark:bg-gray-900 text-sm"
+                                className="px-3 py-2 rounded-md border bg-white text-sm"
                                 aria-expanded={showFilters}
                                 aria-controls="mobile-filters"
                             >
@@ -124,19 +124,19 @@ export default function CategoryTable({ refreshKey }) {
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     placeholder="Search categories"
-                                    className="w-72 pl-3 pr-10 py-2 rounded-md border border-gray-200 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-72 pl-3 pr-10 py-2 rounded-md border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 />
                                
                             </div>
 
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <span className="text-xs text-gray-500">Sort</span>
-                                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="rounded-md border px-2 py-1 bg-white dark:bg-gray-900">
+                                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="rounded-md border px-2 py-1 bg-white">
                                     <option value="createdAt">Created</option>
                                     <option value="name">Name</option>
                                     <option value="slug">Slug</option>
                                 </select>
-                                <button onClick={() => setSortDir((s) => (s === 'asc' ? 'desc' : 'asc'))} className="px-2 py-1 rounded-md border bg-white dark:bg-gray-900">
+                                <button onClick={() => setSortDir((s) => (s === 'asc' ? 'desc' : 'asc'))} className="px-2 py-1 rounded-md border bg-white">
                                     {sortDir === 'asc' ? '↑' : '↓'}
                                 </button>
                             </div>
@@ -161,7 +161,7 @@ export default function CategoryTable({ refreshKey }) {
 
                 {/* message banner */}
                 {message && (
-                    <div className={`mt-3 p-3 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>
+                    <div className={`mt-3 p-3 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
                         {message.text}
                     </div>
                 )}
@@ -178,21 +178,21 @@ export default function CategoryTable({ refreshKey }) {
 
                 {/* Mobile filters panel (render under the title on small screens) */}
                 {showFilters && (
-                    <div id="mobile-filters" className="md:hidden mt-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div id="mobile-filters" className="md:hidden mt-3 p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-2 mb-3">
                             <input
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Search categories"
-                                className="w-full pl-3 pr-10 py-2 rounded-md border border-gray-200 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full pl-3 pr-10 py-2 rounded-md border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
-                            <button onClick={() => setShowFilters(false)} className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800">Close</button>
+                            <button onClick={() => setShowFilters(false)} className="px-3 py-2 rounded-md border bg-white">Close</button>
                         </div>
 
                         <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <span className="text-xs text-gray-500">Sort</span>
-                                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="rounded-md border px-2 py-1 bg-white dark:bg-gray-800">
+                                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="rounded-md border px-2 py-1 bg-white">
                                     <option value="createdAt">Created</option>
                                     <option value="name">Name</option>
                                     <option value="slug">Slug</option>
@@ -200,7 +200,7 @@ export default function CategoryTable({ refreshKey }) {
                             </div>
 
                             <div>
-                                <button onClick={() => setSortDir((s) => (s === 'asc' ? 'desc' : 'asc'))} className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800">
+                                <button onClick={() => setSortDir((s) => (s === 'asc' ? 'desc' : 'asc'))} className="px-3 py-2 rounded-md border bg-white">
                                     {sortDir === 'asc' ? '↑' : '↓'}
                                 </button>
                             </div>
@@ -208,7 +208,7 @@ export default function CategoryTable({ refreshKey }) {
                     </div>
                 )}
 
-                <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+                <div className="bg-white shadow rounded-lg overflow-hidden">
                     {/* Mobile: card list */}
                     <div className="md:hidden p-3">
                         {loading && (
@@ -224,32 +224,32 @@ export default function CategoryTable({ refreshKey }) {
                         )}
 
                         {!loading && !error && filtered.map((c) => (
-                            <div key={c._id || c.id} className="mb-3 p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800">
+                            <div key={c._id || c.id} className="mb-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100 ">
                                 <div className="flex items-start justify-between">
                                     <div>
                                         <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-full bg-indigo-50 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-200 font-semibold">{(c.name || '').slice(0, 1).toUpperCase()}</div>
+                                            <div className="h-8 w-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-semibold">{(c.name || '').slice(0, 1).toUpperCase()}</div>
                                             <div>
-                                                <div className="text-sm font-medium text-gray-800 dark:text-gray-100">{c.name}</div>
+                                                <div className="text-sm font-medium text-gray-800">{c.name}</div>
                                                 <div className="text-xs text-gray-500">{c._id || ''}</div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="text-right ml-3">
-                                        <div className="text-sm text-gray-600 dark:text-gray-300">{c.createdAt ? formatDate(c.createdAt) : '—'}</div>
+                                        <div className="text-sm text-gray-600">{c.createdAt ? formatDate(c.createdAt) : '—'}</div>
                                         <div className="mt-2">
-                                            <span className="inline-block px-2 py-1 text-xs rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">{c.slug}</span>
+                                            <span className="inline-block px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-700">{c.slug}</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="mt-3 flex items-center justify-end gap-2">
-                                    <button onClick={() => setEditingCategory(c)} className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900">Edit</button>
+                                    <button onClick={() => setEditingCategory(c)} className="px-2 py-1 text-sm rounded-md border bg-white">Edit</button>
                                     <button
                                         onClick={() => setConfirm({ open: true, id: c._id || c.id, name: c.name || '' })}
                                         disabled={deletingId === (c._id || c.id)}
-                                        className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900 text-red-600"
+                                        className="px-2 py-1 text-sm rounded-md border bg-white text-red-600"
                                     >
                                         {deletingId === (c._id || c.id) ? 'Deleting…' : 'Delete'}
                                     </button>
@@ -261,7 +261,7 @@ export default function CategoryTable({ refreshKey }) {
                     {/* Desktop: table (hidden on small screens) */}
                     <div className="hidden md:block overflow-x-auto">
                         <table className="min-w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-900">
+                            <thead className="bg-gray-50">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
@@ -270,7 +270,7 @@ export default function CategoryTable({ refreshKey }) {
                                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                            <tbody className="divide-y divide-gray-100 bg-white">
                                 {loading && (
                                     <tr>
                                         <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-500">Loading categories…</td>
@@ -292,32 +292,32 @@ export default function CategoryTable({ refreshKey }) {
                                 )}
 
                                 {!loading && !error && filtered.map((c) => (
-                                    <tr key={c._id || c.id} className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                                    <tr key={c._id || c.id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-4 py-4 align-top">
                                             <div className="flex items-center gap-3">
-                                                <div className="h-8 w-8 rounded-full bg-indigo-50 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-200 font-semibold">{(c.name || '').slice(0, 1).toUpperCase()}</div>
+                                                <div className="h-8 w-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-semibold">{(c.name || '').slice(0, 1).toUpperCase()}</div>
                                                 <div>
-                                                    <div className="text-sm font-medium text-gray-800 dark:text-gray-100">{c.name}</div>
+                                                    <div className="text-sm font-medium text-gray-800">{c.name}</div>
                                                     <div className="text-xs text-gray-500">{c._id || ''}</div>
                                                 </div>
                                             </div>
                                         </td>
 
                                         <td className="px-4 py-4 align-top">
-                                            <span className="inline-block px-2 py-1 text-xs rounded-md bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300">{c.slug}</span>
+                                            <span className="inline-block px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-700">{c.slug}</span>
                                         </td>
 
-                                        <td className="px-4 py-4 align-top text-sm text-gray-600 dark:text-gray-300">{truncate(c.description || '—', 120)}</td>
+                                        <td className="px-4 py-4 align-top text-sm text-gray-600">{truncate(c.description || '—', 120)}</td>
 
-                                        <td className="px-4 py-4 align-top text-sm text-gray-600 dark:text-gray-300">{c.createdAt ? formatDate(c.createdAt) : '—'}</td>
+                                        <td className="px-4 py-4 align-top text-sm text-gray-600">{c.createdAt ? formatDate(c.createdAt) : '—'}</td>
 
                                         <td className="px-4 py-4 align-top text-right">
                                             <div className="inline-flex items-center gap-2">
-                                                    <button onClick={() => setEditingCategory(c)} className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900">Edit</button>
+                                                    <button onClick={() => setEditingCategory(c)} className="px-2 py-1 text-sm rounded-md border bg-white">Edit</button>
                                                     <button
                                                         onClick={() => setConfirm({ open: true, id: c._id || c.id, name: c.name || '' })}
                                                         disabled={deletingId === (c._id || c.id)}
-                                                        className="px-2 py-1 text-sm rounded-md border bg-white dark:bg-gray-900 text-red-600"
+                                                        className="px-2 py-1 text-sm rounded-md border bg-white text-red-600"
                                                     >
                                                         {deletingId === (c._id || c.id) ? 'Deleting…' : 'Delete'}
                                                     </button>

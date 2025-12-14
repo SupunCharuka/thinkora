@@ -103,36 +103,36 @@ export default function CreateCategoryForm({ onCreated, category, onUpdated, sho
 
   return (
     <div className="mt-6 max-w">
-      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         {showHeader && (
-          <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex items-start gap-4">
-            <div className="flex-shrink-0 h-12 w-12 rounded-md bg-indigo-50 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-200">
+          <div className="p-5 border-b border-gray-100  flex items-start gap-4">
+            <div className="flex-shrink-0 h-12 w-12 rounded-md bg-indigo-50 flex items-center justify-center text-indigo-600">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
               </svg>
             </div>
             <div>
               <h3 className="text-lg font-semibold">{category ? 'Edit category' : 'Create category'}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300">{category ? 'Update category details.' : 'Add a new category for posts. Slug is used in URLs.'}</p>
+              <p className="text-sm text-gray-600">{category ? 'Update category details.' : 'Add a new category for posts. Slug is used in URLs.'}</p>
             </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {(status === 'created' || status === 'updated') && (
-            <div className="p-3 rounded-md bg-green-50 dark:bg-green-900 text-green-800 dark:text-green-200">{status === 'created' ? 'Category created successfully' : 'Category updated successfully'}</div>
+            <div className="p-3 rounded-md bg-green-50 text-green-800">{status === 'created' ? 'Category created successfully' : 'Category updated successfully'}</div>
           )}
           {status && status !== 'saving' && status !== 'created' && status !== 'updated' && typeof status === 'string' && (
-            <div className="p-3 rounded-md bg-red-50 dark:bg-red-900 text-red-800 dark:text-red-200">{status}</div>
+            <div className="p-3 rounded-md bg-red-50 text-red-800">{status}</div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Name</label>
+              <label className="block text-xs font-medium text-gray-700 ">Name</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 ${errors.name ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`}
+                className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.name ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`}
                 placeholder="e.g. News"
                 aria-invalid={!!errors.name}
               />
@@ -140,19 +140,19 @@ export default function CreateCategoryForm({ onCreated, category, onUpdated, sho
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Slug</label>
+              <label className="block text-xs font-medium text-gray-700 ">Slug</label>
               <div className="mt-2 flex gap-2">
                 <input
                   value={slug}
                   onChange={(e) => { setSlug(e.target.value); setAutoSlug(false); }}
-                  className={`flex-1 rounded-md border px-3 py-2 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 ${errors.slug ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`}
+                  className={`flex-1 rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.slug ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`}
                   placeholder="auto-generated"
                   aria-invalid={!!errors.slug}
                 />
                 <button
                   type="button"
                   onClick={() => { setSlug(generateSlug(name)); setAutoSlug(true); }}
-                  className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200"
+                  className="px-3 py-2 rounded-md border bg-white text-sm text-gray-700"
                 >
                   Auto
                 </button>
@@ -163,11 +163,11 @@ export default function CreateCategoryForm({ onCreated, category, onUpdated, sho
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
+            <label className="block text-xs font-medium text-gray-700 ">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-2 block w-full rounded-md border border-gray-200 bg-gray-50 dark:bg-gray-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="mt-2 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               rows={3}
               placeholder="Optional short description"
             />
@@ -205,7 +205,7 @@ export default function CreateCategoryForm({ onCreated, category, onUpdated, sho
                   setStatus(null);
                   setErrors({});
                 }}
-                className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800 text-sm"
+                className="px-3 py-2 rounded-md border bg-white text-sm"
               >
                 Reset
               </button>

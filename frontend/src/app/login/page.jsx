@@ -57,7 +57,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-[70vh] flex items-center justify-center py-12">
       <div className="w-full max-w-md">
-        <div className="bg-white/80 dark:bg-slate-900/70 backdrop-blur rounded-2xl shadow-lg p-8">
+        <div className="bg-white/80 backdrop-blur rounded-2xl shadow-lg p-8">
           <h1 className="text-2xl font-semibold mb-1">Welcome back</h1>
           <p className="text-sm text-slate-500 mb-6">Sign in to continue to your dashboard.</p>
 

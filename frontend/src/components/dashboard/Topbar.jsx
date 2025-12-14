@@ -43,7 +43,7 @@ export default function Topbar({ onOpenSidebar }) {
 
           <div>
             <h1 className="text-2xl font-bold">Dashboard</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Realtime overview</p>
+            <p className="text-sm text-gray-500">Realtime overview</p>
           </div>
         </div>
 
@@ -61,9 +61,9 @@ export default function Topbar({ onOpenSidebar }) {
       {confirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setConfirmOpen(false)} />
-          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg w-11/12 max-w-md p-6">
+          <div className="relative bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6">
             <h3 className="text-lg font-semibold">Confirm sign out</h3>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">Are you sure you want to sign out?</p>
+            <p className="mt-2 text-sm text-gray-600">Are you sure you want to sign out?</p>
             <div className="mt-4 flex justify-end gap-3">
               <button onClick={() => setConfirmOpen(false)} className="px-3 py-1 rounded-md border border-gray-200 text-sm">No</button>
               <button onClick={doSignOut} className="px-3 py-1 rounded-md bg-red-600 text-white text-sm">Yes, sign out</button>
