@@ -1,16 +1,31 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/components/dashboard/sidebar";
 import Topbar from "@/components/dashboard/topbar";
 import Link from 'next/link';
 import Image from 'next/image';
 import useDashboardAuth from '@/hooks/useDashboardAuth';
+// PrimeReact imports
+import 'primereact/resources/themes/saga-blue/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Button } from 'primereact/button';
+import { InputText } from 'primereact/inputtext';
+import { Dropdown } from 'primereact/dropdown';
+import { FilterMatchMode } from 'primereact/api';
 
 export default function ViewBlogsPage() {
     const { loading: checking, data } = useDashboardAuth();
     const [blogs, setBlogs] = useState([]);
     const [loadingBlogs, setLoadingBlogs] = useState(false);
     const [error, setError] = useState(null);
+    const [rowsPerPage, setRowsPerPage] = useState(9);
+    const [filters, setFilters] = useState({
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        categoryName: { value: null, matchMode: FilterMatchMode.EQUALS }
+    });
     const fetchBlogs = async (signal) => {
         setLoadingBlogs(true);
         setError(null);
@@ -23,7 +38,12 @@ export default function ViewBlogsPage() {
             const mine = (all || []).filter(b => {
                 const authorId = b?.author?._id || b?.author || null;
                 return authorId && String(authorId) === userId;
-            });
+            }).map(b => ({
+                ...b,
+                // normalize category name and a numeric timestamp for reliable sorting
+                categoryName: b?.category?.name || b?.category || 'Uncategorized',
+                createdTimestamp: b?.createdAt ? new Date(b.createdAt).getTime() : 0
+            }));
             setBlogs(mine);
         } catch (err) {
             setError(err.message || 'Failed to load blogs');
@@ -44,6 +64,83 @@ export default function ViewBlogsPage() {
         return () => controller.abort();
     }, [checking, data]);
 
+    // adjust rows per page based on window width for responsiveness
+    useEffect(() => {
+        const updateRows = () => {
+            try {
+                const w = window.innerWidth;
+                setRowsPerPage(w < 640 ? 5 : 9);
+            } catch (e) { }
+        };
+        updateRows();
+        window.addEventListener('resize', updateRows);
+        return () => window.removeEventListener('resize', updateRows);
+    }, []);
+
+    // categories for dropdown filter
+    const categoryOptions = useMemo(() => {
+        const setCat = new Set((blogs || []).map(b => b.categoryName || 'Uncategorized'));
+        return Array.from(setCat).map(c => ({ label: c, value: c }));
+    }, [blogs]);
+
+    // creative UI helpers
+    const getCategoryColor = (name) => {
+        if (!name) return 'bg-gray-200 text-gray-800';
+        const key = String(name).toLowerCase();
+        if (key.includes('tech')) return 'bg-blue-100 text-blue-800';
+        if (key.includes('news')) return 'bg-green-100 text-green-800';
+        if (key.includes('life')) return 'bg-pink-100 text-pink-800';
+        if (key === 'uncategorized') return 'bg-yellow-100 text-yellow-800';
+        return 'bg-indigo-100 text-indigo-800';
+    };
+
+    const titleTemplate = (row) => (
+        <div className="flex flex-col">
+            <Link href={`/blogs/${row.slug}`} className="text-gray-900 hover:text-blue-600 font-semibold line-clamp-2">{row.title}</Link>
+            {row.excerpt && <span className="text-sm text-gray-500 mt-1 line-clamp-2">{row.excerpt}</span>}
+        </div>
+    );
+
+    const categoryTemplate = (row) => (
+        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor((row.categoryName || '').toString())}`}>
+            <span className="w-2 h-2 rounded-full bg-black inline-block opacity-70" />
+            {row.categoryName}
+        </span>
+    );
+
+    const createdTemplate = (row) => (
+        <div className="text-sm text-gray-600">{new Date(row.createdTimestamp).toLocaleDateString()}</div>
+    );
+
+    const actionTemplate = (row) => (
+        <div className="flex items-center gap-2">
+            <Link href={`/blogs/${row.slug}`} className="">
+                <Button icon="pi pi-eye" className="p-button-sm p-button-plain" aria-label={`View ${row.title}`} />
+            </Link>
+            <Link href={`/dashboard/create-blog?edit=${row._id || row.slug}`}>
+                <Button icon="pi pi-pencil" className="p-button-sm p-button-help" aria-label={`Edit ${row.title}`} />
+            </Link>
+        </div>
+    );
+
+    const header = (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+            <span className="p-input-icon-left">
+                <InputText value={filters.global?.value || ''} onChange={(e) => {
+                    const val = e.target.value;
+                    setFilters(prev => ({ ...prev, global: { value: val, matchMode: FilterMatchMode.CONTAINS } }));
+                }} placeholder="Search by title" />
+            </span>
+
+            <Dropdown options={categoryOptions} value={filters.categoryName?.value || null} onChange={(e) => {
+                const val = e.value;
+                setFilters(prev => ({ ...prev, categoryName: { value: val, matchMode: FilterMatchMode.EQUALS } }));
+            }} placeholder="Filter by category" className="w-48" />
+
+            <Button icon="pi pi-filter-slash" className="p-button-text" onClick={() => setFilters({ global: { value: null, matchMode: FilterMatchMode.CONTAINS }, categoryName: { value: null, matchMode: FilterMatchMode.EQUALS } })} aria-label="Clear filters" />
+        </div>
+    );
+
     if (checking) {
         return (
             <div className="min-h-screen flex items-center justify-center">Loading…</div>
@@ -61,7 +158,7 @@ export default function ViewBlogsPage() {
                     <div className="mt-6">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold">My Blogs</h2>
-                            
+
                         </div>
 
                         <div className="bg-white shadow rounded-md p-4">
@@ -72,52 +169,39 @@ export default function ViewBlogsPage() {
                             ) : blogs.length === 0 ? (
                                 <p>No blogs found for your account.</p>
                             ) : (
-                                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                                    {blogs.map((b) => {
-                                        const baseUrl = (process.env.NEXT_PUBLIC_API_URL).replace(/\/$/, '');
-                                        const image = b.image
-                                            ? (/^https?:\/\//i.test(b.image) ? b.image : `${baseUrl}${b.image.startsWith('/') ? '' : '/'}${b.image}`)
-                                            : '/images/placeholder.svg';
-                                        const category = b?.category?.name || b?.category || 'Uncategorized';
-                                        const author = b?.author?.name || b?.author || 'Unknown';
-                                        const readTime = Math.max(1, Math.round((b.content || '').split(/\s+/).length / 200)) + ' min read';
-                                        return (
-                                            <article key={b._id || b.slug} className="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer">
-                                                <Link href={`/blogs/${b.slug}`} className="absolute inset-0 z-10 focus:outline-none focus:ring-4 focus:ring-blue-500" aria-label={b.title} />
-                                                <div role="img" aria-label={b.title} className="block relative h-64 sm:h-72 md:h-80 lg:h-[420px] overflow-hidden bg-gray-100 rounded-lg">
-                                                    <Image
-                                                        src={image}
-                                                        alt={b.title}
-                                                        fill
-                                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                                        unoptimized
-                                                        sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-                                                    />
+                                <div>
+                                    {/* DataTable implementation using PrimeReact */}
+                                    <DataTable value={blogs}
+                                        paginator
+                                        rows={rowsPerPage}
+                                        responsiveLayout="stack"
+                                        className="p-datatable-sm rounded-lg overflow-hidden shadow-sm"
+                                        header={header}
+                                        filters={filters}
+                                        onFilter={(e) => setFilters(e.filters)}
+                                        globalFilterFields={["title"]}
+                                        rowClassName={() => 'hover:bg-gray-50 transition-colors'}
+                                    >
+                                        <Column header="Image" body={(row) => {
+                                            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+                                            const image = row.image ? (/^https?:\/\//i.test(row.image) ? row.image : `${baseUrl}${row.image.startsWith('/') ? '' : '/'}${row.image}`) : '/images/placeholder.svg';
+                                            return (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-12 h-9 sm:w-16 sm:h-12 relative rounded overflow-hidden bg-gray-100">
+                                                        <Image src={image} alt={row.title} fill className="object-cover" unoptimized />
+                                                    </div>
                                                 </div>
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 group-hover:from-black/80"></div>
+                                            );
+                                        }} style={{ width: '120px' }} />
 
-                                                <div className="absolute top-4 left-4">
-                                                    <span className="inline-flex items-center gap-2 bg-yellow-400 text-black text-xs font-semibold px-3 py-1 rounded-full">
-                                                        <span className="w-2 h-2 rounded-full bg-black inline-block" />
-                                                        {category}
-                                                    </span>
-                                                </div>
+                                        <Column field="title" header="Title" body={titleTemplate} sortable />
 
-                                               
+                                        <Column field="categoryName" header="Category" body={categoryTemplate} sortable />
 
-                                                <div className="absolute left-5 bottom-5 right-5 text-white">
-                                                    <h3 className="text-white text-2xl sm:text-xl font-bold leading-tight drop-shadow-lg mb-2 transition-all duration-300 group-hover:-translate-y-1 max-h-[4.5rem] overflow-hidden">
-                                                        <span className="inline-block">{b.title}</span>
-                                                        <span className="block h-[2px] bg-white transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mt-2" aria-hidden="true" />
-                                                    </h3>
-                                                    <div className="text-sm text-white/80">by {author} · <time dateTime={new Date(b.createdAt).toISOString()}>{new Date(b.createdAt).toLocaleDateString()}</time></div>
-                                                    {b.excerpt && (
-                                                        <p className="mt-2 text-sm text-white/90 max-w-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">{b.excerpt}</p>
-                                                    )}
-                                                </div>
-                                            </article>
-                                        );
-                                    })}
+                                        <Column field="createdTimestamp" header="Created" body={createdTemplate} sortable style={{ width: '140px' }} />
+
+                                        <Column header="Actions" body={actionTemplate} style={{ width: '140px' }} />
+                                    </DataTable>
                                 </div>
                             )}
                         </div>
