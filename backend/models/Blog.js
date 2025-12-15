@@ -10,6 +10,8 @@ const blogSchema = new mongoose.Schema(
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
     published: { type: Boolean, default: true },
+    // heroRank: 1..4 to mark blog as hero slot; null/undefined means not a hero
+    heroRank: { type: Number, default: null },
     views: { type: Number, default: 0 },
   },
   { timestamps: true }

@@ -276,6 +276,7 @@ export default function ViewBlogsPage() {
                                     <DataTable value={blogs}
                                         paginator
                                         rows={rowsPerPage}
+                                        emptyMessage="No blogs"
                                         responsiveLayout="stack"
                                         className="p-datatable-sm rounded-lg overflow-hidden shadow-sm"
                                         header={header}

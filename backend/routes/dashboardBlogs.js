@@ -67,6 +67,51 @@ router.patch('/:id/publish', async (req, res) => {
   }
 });
 
+// Set or clear hero rank for a user's blog (heroRank: 1..4 or null to clear)
+router.patch('/:id/hero', async (req, res) => {
+  try {
+    const userId = req.userId || null;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    let id = req.params.id;
+    const { heroRank } = req.body || {};
+
+    if (!id || String(id) === 'undefined') {
+      const fallback = (req.body && (req.body.id || req.body._id || req.body.slug)) || null;
+      if (fallback) id = fallback; else return res.status(400).json({ message: 'Missing or invalid id parameter' });
+    }
+
+    // validate heroRank
+    if (typeof heroRank === 'undefined') return res.status(400).json({ message: 'Missing heroRank' });
+    const rank = heroRank === null || heroRank === '' ? null : Number(heroRank);
+    if (rank !== null && (!Number.isInteger(rank) || rank < 1 || rank > 4)) return res.status(400).json({ message: 'heroRank must be 1..4 or null' });
+
+    // find blog
+    let blog = null;
+    if (id.match && id.match(/^[0-9a-fA-F]{24}$/)) blog = await Blog.findById(id);
+    if (!blog) blog = await Blog.findOne({ slug: id });
+    if (!blog) return res.status(404).json({ message: 'Blog not found' });
+
+    const authorId = blog.author ? String(blog.author) : null;
+    if (!authorId || String(authorId) !== String(userId)) return res.status(403).json({ message: 'Forbidden' });
+
+    // If assigning a rank, clear any other blog of this user that has same rank
+    if (rank !== null) {
+      await Blog.updateMany({ author: userId, heroRank: rank }, { $set: { heroRank: null } });
+      blog.heroRank = rank;
+    } else {
+      blog.heroRank = null;
+    }
+
+    await blog.save();
+    const updated = await Blog.findById(blog._id).populate('category', 'name slug').populate('author', 'name email');
+    return res.json(updated);
+  } catch (err) {
+    console.error('Failed to update hero rank', err);
+    return res.status(500).json({ message: 'Failed to update hero rank', error: err.message });
+  }
+});
+
 export default router;
 
 // Delete a user's blog and remove uploaded image file
