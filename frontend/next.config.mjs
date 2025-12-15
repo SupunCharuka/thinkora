@@ -2,11 +2,12 @@
 const nextConfig = {
   images: {
     // Add external hosts used by components (e.g. Unsplash and pravatar)
-    domains: ['images.unsplash.com', 'i.pravatar.cc', 'localhost', '127.0.0.1'],
+    domains: ['images.unsplash.com', 'i.pravatar.cc', 'picsum.photos', 'localhost', '127.0.0.1'],
     // If you need finer control use `remotePatterns` instead, e.g. allow localhost:5000
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
       { protocol: 'https', hostname: 'i.pravatar.cc', pathname: '/**' },
+      { protocol: 'https', hostname: 'picsum.photos', pathname: '/**' },
       { protocol: 'http', hostname: 'localhost', port: '5000', pathname: '/uploads/**' },
       { protocol: 'http', hostname: '127.0.0.1', port: '5000', pathname: '/uploads/**' },
     ],

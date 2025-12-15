@@ -16,8 +16,33 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
   // ensure each visible slide has a stable image and thumbnail URL
   const slidesWithImages = visibleSlides.map((s, i) => {
     const seed = s.slug || i;
-    const image = s.image || `https://picsum.photos/seed/${encodeURIComponent(seed)}/1600/900`;
-    const thumb = s.imageThumb || s.image || `https://picsum.photos/seed/${encodeURIComponent(seed)}/200/160`;
+    const envBase = (process?.env?.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+    const makeDefault = (w, h) => `https://picsum.photos/seed/${encodeURIComponent(seed)}/${w}/${h}`;
+
+    const normalize = (src) => {
+      if (!src) return null;
+      if (/^https?:\/\//i.test(src)) {
+        try {
+          const u = new URL(src);
+          // If the upstream host is localhost or 127.0.0.1, use the pathname so Next can proxy `/uploads/...`
+          if (u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.hostname === '[::1]') {
+            return `${u.pathname}${u.search}`;
+          }
+          // If source starts with configured API base, convert to same-origin path
+          if (envBase && src.startsWith(envBase)) return src.replace(envBase, '') || '/';
+          return src;
+        } catch (e) {
+          return src;
+        }
+      }
+      // relative path (uploads or other) — make it absolute on this origin so Next can handle it
+      if (src.startsWith('/')) return src;
+      if (envBase) return `${envBase}/${src}`;
+      return `/${src}`;
+    };
+
+    const image = normalize(s.image) || makeDefault(1600, 900);
+    const thumb = normalize(s.imageThumb || s.image) || makeDefault(200, 160);
     return { ...s, __image: image, __thumb: thumb };
   });
 
@@ -90,7 +115,6 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
                     alt={s.title || ''}
                     fill
                     className="object-cover object-center"
-                    unoptimized
                   />
                 </div>
               ))}
@@ -112,7 +136,6 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
                     alt={s.title || ''}
                     fill
                     className="object-cover object-center"
-                    unoptimized
                   />
                 </div>
               ))}
@@ -130,14 +153,13 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
 
             <div className="flex items-center gap-3 mt-4">
               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
-                <Image
-                  src={current.authorImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=60'}
-                  alt="author"
-                  width={40}
-                  height={40}
-                  className="h-full w-full object-cover"
-                  unoptimized
-                />
+                      <Image
+                        src={current.authorImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=60'}
+                        alt="author"
+                        width={40}
+                        height={40}
+                        className="h-full w-full object-cover"
+                      />
               </div>
               <div className="text-sm text-white/90">
                 <div className="font-medium">{current.author || 'John Doe'}</div>
@@ -166,7 +188,6 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
                         width={64}
                         height={64}
                         className="h-full w-full object-cover object-center"
-                        unoptimized
                       />
                     </div>
                     <div className="text-white">
