@@ -7,7 +7,7 @@ const defaultRemote = [
   { protocol: 'https', hostname: 'picsum.photos', pathname: '/**' },
 ];
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 const domains = [...defaultDomains];
 const remotePatterns = [...defaultRemote];
 
@@ -29,16 +29,15 @@ const nextConfig = {
     domains,
     remotePatterns,
   },
-
-  // Proxy local uploads to backend during development to avoid
-  // Next's private-IP blocking when optimizing images from localhost.
+  
+  // Rewrite /uploads/* to the API uploads endpoint if configured
+  // This allows Next.js Image component to work with uploaded images from the backend
+  // e.g. /uploads/image.jpg -> https://api.example.com/uploads/image.jpg
   async rewrites() {
-    if (!apiUrl) return [];
-    const dest = apiUrl.replace(/\/$/, '') + '/uploads/:path*';
     return [
       {
         source: '/uploads/:path*',
-        destination: dest,
+        destination: apiUrl ? `${apiUrl.replace(/\/$/, '')}/uploads/:path*` : '/uploads/:path*',
       },
     ];
   },
