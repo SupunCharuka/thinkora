@@ -1,16 +1,25 @@
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { PORT, mongoDBURL, FRONTEND_URL } from './config.js';
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
+import dashboardBlogsRoutes from './routes/dashboardBlogs.js';
 import categoriesRoutes from './routes/categories.js';
+import blogsRoutes from './routes/blogs.js';
 import authMiddleware from './middleware/auth.js';
 
 
 const app = express();
 
 app.use(express.json());
+
+// Serve uploaded files from /uploads
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // CORS configuration
 app.use(cors({
@@ -26,9 +35,14 @@ app.use('/api/v1/auth', authRoutes);
 
 // Dashboard (protected)
 app.use('/api/v1/dashboard', authMiddleware, dashboardRoutes);
+// Dashboard: user's blogs (protected)
+app.use('/api/v1/dashboard/blogs', authMiddleware, dashboardBlogsRoutes);
 
 // Categories: public list, protected create handled inside router
 app.use('/api/v1/categories', categoriesRoutes);
+
+// Blogs: public list + protected create
+app.use('/api/v1/blogs', blogsRoutes);
 
 // Start server after connecting to MongoDB
 mongoose

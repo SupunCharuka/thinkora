@@ -78,7 +78,7 @@ const blogs = [
 function BlogCard({ blog }) {
 
 	return (
-		<blog className="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer">
+		<article className="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer">
 			<Link href={`/blogs/${blog.id}`} className="absolute inset-0 z-10" aria-label={blog.title} />
 			<div className="block relative h-[420px] md:h-[420px] overflow-hidden bg-gray-100 rounded-lg">
 				<Image src={blog.image} alt={blog.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -108,7 +108,7 @@ function BlogCard({ blog }) {
 					<p className="mt-2 text-sm text-white/90 max-w-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">{blog.excerpt}</p>
 				)}
 			</div>
-		</blog>
+		</article>
 	);
 }
 

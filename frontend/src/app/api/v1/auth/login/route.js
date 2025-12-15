@@ -18,7 +18,8 @@ export async function POST(request) {
     const maxAge = 7 * 24 * 60 * 60; // 7 days
     const cookie = `token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
 
-    return NextResponse.json({ user: data.user }, { status: 200, headers: { 'Set-Cookie': cookie } });
+    // Return both user and token so the frontend can store it (for Authorization header when calling backend directly)
+    return NextResponse.json({ user: data.user, token }, { status: 200, headers: { 'Set-Cookie': cookie } });
   } catch (err) {
     console.error('API login proxy error', err);
     return NextResponse.json({ message: 'Server error' }, { status: 500 });

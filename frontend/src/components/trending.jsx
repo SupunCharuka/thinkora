@@ -108,7 +108,7 @@ export default function Trending() {
               comments: '72',
             },
           ].slice(0, 8).map((blog, idx) => (
-            <blog
+            <article
               key={idx}
               className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105"
             >
@@ -155,7 +155,7 @@ export default function Trending() {
                   )}
                 </div>
               </Link>
-            </blog>
+            </article>
           ))}
         </div>
       </div>

@@ -1,0 +1,201 @@
+import express from 'express';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import multer from 'multer';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../config.js';
+import Blog from '../models/Blog.js';
+import Category from '../models/Category.js';
+import authMiddleware from '../middleware/auth.js';
+
+const router = express.Router();
+
+// Multer setup for uploads
+// Resolve `uploads` directory relative to this file to avoid issues when cwd differs.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// store blog images under uploads/blogs for clearer organization
+const uploadDir = path.join(__dirname, '..', 'uploads', 'blogs');
+
+// Ensure upload directory exists
+try {
+  fs.mkdirSync(uploadDir, { recursive: true });
+} catch (err) {
+  console.error('Failed to create upload directory', uploadDir, err);
+}
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const safeName = file.originalname.replace(/[^a-z0-9.\-\_]/gi, '-');
+    cb(null, `${Date.now()}-${safeName}`);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (!file.mimetype.startsWith('image/')) return cb(new Error('Only image files are allowed'), false);
+  cb(null, true);
+};
+
+const maxUploadSize = parseInt(process.env.MAX_UPLOAD_SIZE || String(10 * 1024 * 1024), 10); // default 10MB
+const upload = multer({ storage, fileFilter, limits: { fileSize: maxUploadSize } });
+
+const generateSlug = (str = '') =>
+  str
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_]/g, '')
+    .replace(/-+/g, '-');
+
+// Public: list blogs (only published)
+router.get('/', async (req, res) => {
+  try {
+    const blogs = await Blog.find({ published: true }).sort({ createdAt: -1 }).populate('category', 'name slug').populate('author', 'name email');
+    return res.json(blogs);
+  } catch (err) {
+    console.error('Failed to list blogs', err);
+    return res.status(500).json({ message: 'Failed to load blogs' });
+  }
+});
+
+// Public: get by id or slug (respect unpublished/private)
+router.get('/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = id.match(/^[0-9a-fA-F]{24}$/) ? { _id: id } : { slug: id };
+    const blog = await Blog.findOne(query).populate('category', 'name slug').populate('author', 'name email');
+    if (!blog) return res.status(404).json({ message: 'Blog not found' });
+
+    // If not published, only the author may view it
+    if (!blog.published) {
+      let token = null;
+      const rawAuth = (req.headers.authorization || req.headers.Authorization || '').toString();
+      if (rawAuth) {
+        const parts = rawAuth.split(' ').filter(Boolean);
+        if (parts.length === 2 && /^Bearer$/i.test(parts[0])) token = parts[1];
+        else if (parts.length === 1) token = parts[0];
+      }
+      if (!token && req.cookies && typeof req.cookies.token === 'string') token = req.cookies.token;
+
+      try {
+        if (!token) throw new Error('no token');
+        const payload = jwt.verify(token, JWT_SECRET);
+        const userId = payload && payload.id ? String(payload.id) : null;
+        const authorId = blog.author && blog.author._id ? String(blog.author._id) : String(blog.author);
+        if (!userId || userId !== authorId) return res.status(404).json({ message: 'Blog not found' });
+      } catch (err) {
+        return res.status(404).json({ message: 'Blog not found' });
+      }
+    }
+
+    return res.json(blog);
+  } catch (err) {
+    console.error('Failed to get blog', err);
+    return res.status(500).json({ message: 'Failed to load blog' });
+  }
+});
+
+// Protected: create blog (accept multipart form with image)
+router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    const { title, slug: rawSlug, excerpt, content, category: categoryId, published } = req.body || {};
+
+    // Multer file: req.file
+    const file = req.file;
+
+    if (!title || !title.toString().trim()) return res.status(400).json({ message: 'Title is required' });
+    if (!content || !content.toString().trim()) return res.status(400).json({ message: 'Content is required' });
+    if (!categoryId) return res.status(400).json({ message: 'Category is required' });
+    if (!file) return res.status(400).json({ message: 'Image is required' });
+
+    const slug = (rawSlug && String(rawSlug).trim()) || generateSlug(title);
+
+    // check slug unique
+    const existing = await Blog.findOne({ slug });
+    if (existing) return res.status(409).json({ message: 'Slug already exists' });
+
+    // validate category exists
+    const category = await Category.findById(categoryId);
+    if (!category) return res.status(400).json({ message: 'Invalid category' });
+
+    // coerce published to boolean (form values may be strings)
+    const publishedBool = (published === false || published === 'false' || published === '0' || published === 0) ? false : (published === true || published === 'true' || published === '1' || published === 1) ? true : true;
+
+    const blog = new Blog({
+      title: title.trim(),
+      slug,
+      excerpt: excerpt && String(excerpt).trim(),
+      content: content.trim(),
+      image: `/uploads/blogs/${file.filename}`,
+      author: req.userId || null,
+      category: category._id,
+      published: publishedBool,
+    });
+
+    await blog.save();
+    return res.status(201).json(blog);
+  } catch (err) {
+    console.error('Failed to create blog', err);
+    return res.status(500).json({ message: 'Failed to create blog' });
+  }
+});
+
+// Protected: update an existing blog (accept multipart form with optional image)
+router.put('/:id', authMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    let id = req.params.id;
+    if (!id || String(id) === 'undefined') {
+      const fallback = (req.body && (req.body.id || req.body._id || req.body.slug)) || null;
+      if (fallback) id = fallback; else return res.status(400).json({ message: 'Missing or invalid id parameter' });
+    }
+
+    // find by id or slug
+    let blog = null;
+    if (id.match && id.match(/^[0-9a-fA-F]{24}$/)) blog = await Blog.findById(id);
+    if (!blog) blog = await Blog.findOne({ slug: id });
+    if (!blog) return res.status(404).json({ message: 'Blog not found' });
+
+    const authorId = blog.author ? String(blog.author) : null;
+    const userId = req.userId || null;
+    if (!userId || String(authorId) !== String(userId)) return res.status(403).json({ message: 'Forbidden' });
+
+    const { title, slug: rawSlug, excerpt, content, category: categoryId, published } = req.body || {};
+
+    // update fields when provided
+    if (title && String(title).trim()) blog.title = String(title).trim();
+    if (rawSlug && String(rawSlug).trim()) blog.slug = String(rawSlug).trim();
+    if (typeof excerpt !== 'undefined') blog.excerpt = excerpt && String(excerpt).trim();
+    if (typeof content !== 'undefined' && String(content).trim()) blog.content = String(content).trim();
+    if (typeof categoryId !== 'undefined' && categoryId) blog.category = categoryId;
+    if (typeof published !== 'undefined') blog.published = (published === true || published === 'true' || published === '1' || published === 1) ? true : false;
+
+    // handle optional new image
+    const file = req.file;
+    if (file) {
+      // remove old file if present
+      try {
+        if (blog.image && typeof blog.image === 'string') {
+          const imagePath = blog.image.replace(/^\/+/, '');
+          const __filename = fileURLToPath(import.meta.url);
+          const __dirname = path.dirname(__filename);
+          const oldPath = path.join(__dirname, '..', imagePath);
+          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
+      } catch (err) {
+        console.warn('Failed to remove old blog image', err);
+      }
+      blog.image = `/uploads/blogs/${file.filename}`;
+    }
+
+    await blog.save();
+    const updated = await Blog.findById(blog._id).populate('category', 'name slug').populate('author', 'name email');
+    return res.json(updated);
+  } catch (err) {
+    console.error('Failed to update blog', err);
+    return res.status(500).json({ message: 'Failed to update blog' });
+  }
+});
+
+export default router;

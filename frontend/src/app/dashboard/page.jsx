@@ -18,7 +18,7 @@ export default function DashboardPage() {
   const { message: backendMsg, loading, error } = useDashboardAuth();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       <div className="flex">
         <aside className="w-64 hidden md:block">
           <Sidebar />
@@ -34,22 +34,22 @@ export default function DashboardPage() {
           </div>
 
           {loading ? (
-            <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900 rounded">
+            <div className="mt-6 p-4 bg-yellow-50 rounded">
               Loading dashboard data...
             </div>
           ) : error ? (
-            <div className="mt-6 p-4 bg-red-50 dark:bg-red-900 rounded">
+            <div className="mt-6 p-4 bg-red-50 rounded">
               <strong>Error:</strong> <span>{error}</span>
             </div>
           ) : backendMsg ? (
-            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded">
+            <div className="mt-6 p-4 bg-blue-50 rounded">
               <strong>Backend:</strong> <span>{backendMsg}</span>
             </div>
           ) : null}
 
           <section className="mt-8">
             <h2 className="text-lg font-semibold">Blogs</h2>
-            <div className="mt-4 bg-white dark:bg-gray-800 shadow rounded-md">
+            <div className="mt-4 bg-white shadow rounded-md">
               <BlogsTable  />
             </div>
           </section>

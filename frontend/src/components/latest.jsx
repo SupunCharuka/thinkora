@@ -68,7 +68,7 @@ export default function Latest() {
                     {blogs.concat(blogs).slice(0, 8).map((blog, idx) => {
                         const author = authors[idx % authors.length];
                         return (
-                            <blog key={blog.slug + idx} className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105">
+                            <article key={blog.slug + idx} className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105">
                                 <Link href={`/blogs/${blog.slug}`} className="group block rounded-lg overflow-hidden shadow-lg">
                                     <div className="w-full h-[420px] relative rounded-lg overflow-hidden bg-gray-100">
                                         <Image
@@ -112,7 +112,7 @@ export default function Latest() {
                                         )}
                                     </div>
                                 </Link>
-                            </blog>
+                            </article>
                         );
                     })}
                 </div>
