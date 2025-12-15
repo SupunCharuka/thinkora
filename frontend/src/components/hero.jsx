@@ -61,15 +61,6 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
     return () => clearInterval(autoplayRef.current);
   }, [visibleSlides.length, autoplay, interval]);
 
-  // no extra state needed for fade: we render all slides stacked and transition opacity
-
-  function goPrev() {
-    setIndex((i) => (i - 1 + visibleSlides.length) % visibleSlides.length);
-  }
-
-  function goNext() {
-    setIndex((i) => (i + 1) % visibleSlides.length);
-  }
 
   const current = slidesWithImages[index] || {};
 
@@ -156,17 +147,17 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
 
             <div className="mt-4">
               <div className="text-sm text-white/90">
-                <div className="text-xs text-white/70">{current.date || '25th July 2025'}</div>
+                <div className="text-xs text-white/70">{current.date}</div>
               </div>
             </div>
           </div>
 
           <aside className="hidden md:block md:col-span-2 pl-0 md:pl-6 mt-6 md:mt-0 mb-6 md:mb-0">
-                <div className="bg-white/5 backdrop-blur rounded-xl p-3 md:p-4 space-y-3 mb-6 md:mb-0">
+            <div className="bg-white/5 backdrop-blur rounded-xl p-3 md:p-4 space-y-3 mb-6 md:mb-0">
               {slidesWithImages.map((r, i) => {
                 const isActive = i === index;
                 return (
-                    <Link
+                  <Link
                     key={r.slug || i}
                     href={r.slug ? `/blogs/${r.slug}` : '#'}
                     onMouseEnter={() => setIndex(i)}
@@ -193,8 +184,6 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
             </div>
           </aside>
         </div>
-
-     
       </div>
     </section>
   );
