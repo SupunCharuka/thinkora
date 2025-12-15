@@ -148,7 +148,7 @@ export default function ViewBlogsPage() {
                         return;
                     }
                     const urlId = encodeURIComponent(String(id));
-                    console.log('Toggling visibility for id', id);
+                
                     const res = await fetch(`/api/v1/dashboard/blogs/${urlId}/publish`, {
                         method: 'PATCH',
                         credentials: 'include',
@@ -165,6 +165,29 @@ export default function ViewBlogsPage() {
                     setBlogs(prev => prev.map(b => (String(b._id || b.id) === String(updated._id || updated.id) ? ({ ...b, published: !!updated.published }) : b)));
                 } catch (err) {
                     console.error('Toggle error', err);
+                }
+            }} />
+            <Button icon="pi pi-trash" className="p-button-sm p-button-danger" aria-label={`Delete ${row.title}`} onClick={async () => {
+                try {
+                    if (!confirm(`Delete blog "${row.title}"? This cannot be undone.`)) return;
+                    const id = row._id || row.id || row.slug;
+                    if (!id || String(id) === 'undefined') { console.error('Invalid id for delete', id); return; }
+                    const urlId = encodeURIComponent(String(id));
+                    const res = await fetch(`/api/v1/dashboard/blogs/${urlId}`, {
+                        method: 'DELETE',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id }),
+                    });
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        console.error('Failed to delete blog', err);
+                        return;
+                    }
+                    // remove from local state
+                    setBlogs(prev => prev.filter(b => String(b._id || b.id) !== String(id)));
+                } catch (err) {
+                    console.error('Delete error', err);
                 }
             }} />
         </div>
