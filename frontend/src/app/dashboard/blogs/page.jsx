@@ -15,12 +15,15 @@ import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { FilterMatchMode } from 'primereact/api';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { Toast } from 'primereact/toast';
 
 export default function ViewBlogsPage() {
     const { loading: checking, data } = useDashboardAuth();
     const [blogs, setBlogs] = useState([]);
     const [loadingBlogs, setLoadingBlogs] = useState(false);
     const [error, setError] = useState(null);
+    const toast = React.useRef(null);
     const [rowsPerPage, setRowsPerPage] = useState(9);
     const [filters, setFilters] = useState({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -140,55 +143,68 @@ export default function ViewBlogsPage() {
             <Link href={`/dashboard/create-blog?edit=${row._id || row.slug}`}>
                 <Button icon="pi pi-pencil" className="p-button-sm p-button-help" aria-label={`Edit ${row.title}`} />
             </Link>
-            <Button icon={row.published ? 'pi pi-lock-open' : 'pi pi-lock'} className="p-button-sm p-button-secondary" aria-label={`Toggle visibility ${row.title}`} onClick={async () => {
-                try {
-                    const id = row._id || row.id || row.slug;
-                    if (!id || String(id) === 'undefined') {
-                        console.error('Toggle aborted: invalid id', id, row);
-                        return;
+            <Button icon={row.published ? 'pi pi-lock-open' : 'pi pi-lock'} className="p-button-sm p-button-secondary" aria-label={`Toggle visibility ${row.title}`} onClick={() => {
+                const id = row._id || row.id || row.slug;
+                if (!id || String(id) === 'undefined') { console.error('Toggle aborted: invalid id', id, row); return; }
+                confirmDialog({
+                    message: `${row.published ? 'Make this blog private?' : 'Make this blog public?'}`,
+                    header: 'Confirm',
+                    icon: 'pi pi-exclamation-triangle',
+                    acceptClassName: 'p-button-danger',
+                    accept: async () => {
+                        try {
+                            const urlId = encodeURIComponent(String(id));
+                            const res = await fetch(`/api/v1/dashboard/blogs/${urlId}/publish`, {
+                                method: 'PATCH',
+                                credentials: 'include',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ published: !row.published, id }),
+                            });
+                            if (!res.ok) {
+                                const err = await res.json().catch(() => ({}));
+                                toast.current && toast.current.show({ severity: 'error', summary: 'Error', detail: err.message || 'Failed to toggle visibility', life: 4000 });
+                                return;
+                            }
+                            const updated = await res.json();
+                            setBlogs(prev => prev.map(b => (String(b._id || b.id) === String(updated._id || updated.id) ? ({ ...b, published: !!updated.published }) : b)));
+                            toast.current && toast.current.show({ severity: 'success', summary: 'Updated', detail: 'Visibility updated', life: 3000 });
+                        } catch (err) {
+                            console.error('Toggle error', err);
+                            toast.current && toast.current.show({ severity: 'error', summary: 'Error', detail: 'Network error', life: 4000 });
+                        }
                     }
-                    const urlId = encodeURIComponent(String(id));
-                
-                    const res = await fetch(`/api/v1/dashboard/blogs/${urlId}/publish`, {
-                        method: 'PATCH',
-                        credentials: 'include',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ published: !row.published, id }),
-                    });
-                    if (!res.ok) {
-                        const err = await res.json().catch(() => ({}));
-                        console.error('Failed to toggle visibility', err);
-                        return;
-                    }
-                    const updated = await res.json();
-                    // update local state
-                    setBlogs(prev => prev.map(b => (String(b._id || b.id) === String(updated._id || updated.id) ? ({ ...b, published: !!updated.published }) : b)));
-                } catch (err) {
-                    console.error('Toggle error', err);
-                }
+                });
             }} />
-            <Button icon="pi pi-trash" className="p-button-sm p-button-danger" aria-label={`Delete ${row.title}`} onClick={async () => {
-                try {
-                    if (!confirm(`Delete blog "${row.title}"? This cannot be undone.`)) return;
-                    const id = row._id || row.id || row.slug;
-                    if (!id || String(id) === 'undefined') { console.error('Invalid id for delete', id); return; }
-                    const urlId = encodeURIComponent(String(id));
-                    const res = await fetch(`/api/v1/dashboard/blogs/${urlId}`, {
-                        method: 'DELETE',
-                        credentials: 'include',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id }),
-                    });
-                    if (!res.ok) {
-                        const err = await res.json().catch(() => ({}));
-                        console.error('Failed to delete blog', err);
-                        return;
+            <Button icon="pi pi-trash" className="p-button-sm p-button-danger" aria-label={`Delete ${row.title}`} onClick={() => {
+                const id = row._id || row.id || row.slug;
+                if (!id || String(id) === 'undefined') { console.error('Invalid id for delete', id); return; }
+                confirmDialog({
+                    message: `Delete blog "${row.title}"? This cannot be undone.`,
+                    header: 'Confirm Delete',
+                    icon: 'pi pi-exclamation-triangle',
+                    acceptClassName: 'p-button-danger',
+                    accept: async () => {
+                        try {
+                            const urlId = encodeURIComponent(String(id));
+                            const res = await fetch(`/api/v1/dashboard/blogs/${urlId}`, {
+                                method: 'DELETE',
+                                credentials: 'include',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id }),
+                            });
+                            if (!res.ok) {
+                                const err = await res.json().catch(() => ({}));
+                                toast.current && toast.current.show({ severity: 'error', summary: 'Error', detail: err.message || 'Failed to delete blog', life: 4000 });
+                                return;
+                            }
+                            setBlogs(prev => prev.filter(b => String(b._id || b.id) !== String(id)));
+                            toast.current && toast.current.show({ severity: 'success', summary: 'Deleted', detail: 'Blog deleted', life: 3000 });
+                        } catch (err) {
+                            console.error('Delete error', err);
+                            toast.current && toast.current.show({ severity: 'error', summary: 'Error', detail: 'Network error', life: 4000 });
+                        }
                     }
-                    // remove from local state
-                    setBlogs(prev => prev.filter(b => String(b._id || b.id) !== String(id)));
-                } catch (err) {
-                    console.error('Delete error', err);
-                }
+                });
             }} />
         </div>
     );
@@ -239,6 +255,8 @@ export default function ViewBlogsPage() {
                 </aside>
                 <main className="flex-1 p-6">
                     <Topbar />
+                    <ConfirmDialog />
+                    <Toast ref={toast} />
                     <div className="mt-6">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold">My Blogs</h2>
