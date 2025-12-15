@@ -14,20 +14,14 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
   const visibleSlides = slides.slice(0, 4);
 
   // ensure each visible slide has a stable image and thumbnail URL
-  const slidesWithImages = visibleSlides.map((s, i) => {
-    const seed = s.slug || i;
+  const slidesWithImages = visibleSlides.map((s) => {
     const envBase = (process?.env?.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
-    const makeDefault = (w, h) => `https://picsum.photos/seed/${encodeURIComponent(seed)}/${w}/${h}`;
 
     const normalize = (src) => {
       if (!src) return null;
       if (/^https?:\/\//i.test(src)) {
         try {
           const u = new URL(src);
-          // If the upstream host is localhost or 127.0.0.1, use the pathname so Next can proxy `/uploads/...`
-          if (u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.hostname === '[::1]') {
-            return `${u.pathname}${u.search}`;
-          }
           // If source starts with configured API base, convert to same-origin path
           if (envBase && src.startsWith(envBase)) return src.replace(envBase, '') || '/';
           return src;
@@ -41,9 +35,14 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
       return `/${src}`;
     };
 
-    const image = normalize(s.image) || makeDefault(1600, 900);
-    const thumb = normalize(s.imageThumb || s.image) || makeDefault(200, 160);
-    return { ...s, __image: image, __thumb: thumb };
+    const image = normalize(s.image) || '/images/placeholder.svg';
+    const thumb = normalize(s.imageThumb || s.image) || '/images/placeholder.svg';
+
+    // Map backend populated fields to simple display-friendly props
+    const categoryName = s.category && typeof s.category === 'object' ? (s.category.name || s.category.slug) : (s.category || 'Lifestyle');
+    const date = s.createdAt ? new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : (s.date || null);
+
+    return { ...s, __image: image, __thumb: thumb, category: categoryName, date };
   });
 
   useEffect(() => {
@@ -58,15 +57,6 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
     return () => clearInterval(autoplayRef.current);
   }, [visibleSlides.length, autoplay, interval]);
 
-  // no extra state needed for fade: we render all slides stacked and transition opacity
-
-  function goPrev() {
-    setIndex((i) => (i - 1 + visibleSlides.length) % visibleSlides.length);
-  }
-
-  function goNext() {
-    setIndex((i) => (i + 1) % visibleSlides.length);
-  }
 
   const current = slidesWithImages[index] || {};
 
@@ -84,7 +74,7 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
   };
 
   return (
-    <section className="rounded-2xl overflow-hidden relative mb-6">
+    <section className="rounded-2xl overflow-hidden relative mb-6" role="region" aria-label="Hero section">
       <div
         onMouseEnter={() => (isPaused.current = true)}
         onMouseLeave={() => (isPaused.current = false)}
@@ -112,8 +102,10 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
                 >
                   <Image
                     src={s.__image}
-                    alt={s.title || ''}
+                    alt={s.title}
                     fill
+                    loading={i === index ? 'eager' : 'lazy'}
+                    priority={i === index}
                     className="object-cover object-center"
                   />
                 </div>
@@ -133,8 +125,10 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
                 >
                   <Image
                     src={s.__image}
-                    alt={s.title || ''}
+                    alt={s.title}
                     fill
+                    loading={i === index ? 'eager' : 'lazy'}
+                    priority={i === index}
                     className="object-cover object-center"
                   />
                 </div>
@@ -151,29 +145,19 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
             <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold leading-tight mb-3">{current.title || 'The Future of Work: Remote, AI-Driven, and Flexible'}</h1>
             <p className="text-sm sm:text-base text-white/90 max-w-xl mb-4">{current.excerpt || 'Once dismissed as counterculture, urban fashion has moved from the sidewalks to the catwalks of major fashion capitals.'}</p>
 
-            <div className="flex items-center gap-3 mt-4">
-              <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
-                      <Image
-                        src={current.authorImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=60'}
-                        alt="author"
-                        width={40}
-                        height={40}
-                        className="h-full w-full object-cover"
-                      />
-              </div>
+            <div className="mt-4">
               <div className="text-sm text-white/90">
-                <div className="font-medium">{current.author || 'John Doe'}</div>
-                <div className="text-xs text-white/70">{current.date || '25th July 2025'}</div>
+                <div className="text-xs text-white/70">{current.date}</div>
               </div>
             </div>
           </div>
 
           <aside className="hidden md:block md:col-span-2 pl-0 md:pl-6 mt-6 md:mt-0 mb-6 md:mb-0">
-                <div className="bg-white/5 backdrop-blur rounded-xl p-3 md:p-4 space-y-3 mb-6 md:mb-0">
+            <div className="bg-white/5 backdrop-blur rounded-xl p-3 md:p-4 space-y-3 mb-6 md:mb-0">
               {slidesWithImages.map((r, i) => {
                 const isActive = i === index;
                 return (
-                    <Link
+                  <Link
                     key={r.slug || i}
                     href={r.slug ? `/blogs/${r.slug}` : '#'}
                     onMouseEnter={() => setIndex(i)}
@@ -183,7 +167,7 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
                   >
                     <div className={`h-12 w-12 md:h-16 md:w-16 rounded-md overflow-hidden flex-shrink-0 bg-slate-400 ${isActive ? 'ring-2 ring-white/30' : ''}`}>
                       <Image
-                        src={r.__thumb}
+                        src={r.__thumb || r.__image}
                         alt="thumb"
                         width={64}
                         height={64}
@@ -200,8 +184,6 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
             </div>
           </aside>
         </div>
-
-     
       </div>
     </section>
   );
