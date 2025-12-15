@@ -22,10 +22,6 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
       if (/^https?:\/\//i.test(src)) {
         try {
           const u = new URL(src);
-          // If the upstream host is localhost or 127.0.0.1, use the pathname so Next can proxy `/uploads/...`
-          if (u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.hostname === '[::1]') {
-            return `${u.pathname}${u.search}`;
-          }
           // If source starts with configured API base, convert to same-origin path
           if (envBase && src.startsWith(envBase)) return src.replace(envBase, '') || '/';
           return src;
@@ -78,7 +74,7 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
   };
 
   return (
-    <section className="rounded-2xl overflow-hidden relative mb-6">
+    <section className="rounded-2xl overflow-hidden relative mb-6" role="region" aria-label="Hero section">
       <div
         onMouseEnter={() => (isPaused.current = true)}
         onMouseLeave={() => (isPaused.current = false)}
@@ -106,8 +102,10 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
                 >
                   <Image
                     src={s.__image}
-                    alt={s.title || ''}
+                    alt={s.title}
                     fill
+                    loading={i === index ? 'eager' : 'lazy'}
+                    priority={i === index}
                     className="object-cover object-center"
                   />
                 </div>
@@ -127,8 +125,10 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
                 >
                   <Image
                     src={s.__image}
-                    alt={s.title || ''}
+                    alt={s.title}
                     fill
+                    loading={i === index ? 'eager' : 'lazy'}
+                    priority={i === index}
                     className="object-cover object-center"
                   />
                 </div>
