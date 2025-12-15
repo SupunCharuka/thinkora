@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { Editor } from 'primereact/editor';
+import { Toast } from 'primereact/toast';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
@@ -15,7 +16,7 @@ function generateSlug(str = '') {
     .replace(/-+/g, '-');
 }
 
-export default function CreateBlogForm({ onCreated }) {
+export default function CreateBlogForm({ onCreated, initial }) {
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [excerpt, setExcerpt] = useState('');
@@ -27,8 +28,42 @@ export default function CreateBlogForm({ onCreated }) {
   const fileInputRef = useRef(null);
   const [categories, setCategories] = useState([]);
   const [status, setStatus] = useState(null);
+  const toast = useRef(null);
   const [autoSlug, setAutoSlug] = useState(true);
   const [errors, setErrors] = useState({});
+  const isEdit = !!(initial && (initial._id || initial.slug));
+
+  // Populate form when editing
+  useEffect(() => {
+    if (!initial) {
+      // reset to defaults when switching to create mode
+      setTitle('');
+      setSlug('');
+      setExcerpt('');
+      setContent('');
+      setCategory('');
+      setPublished(true);
+      setImage(null);
+      if (imagePreview) {
+        try { URL.revokeObjectURL(imagePreview); } catch (e) { }
+        setImagePreview(null);
+      }
+      return;
+    }
+
+    setTitle(initial.title || '');
+    setSlug(initial.slug || '');
+    setExcerpt(initial.excerpt || '');
+    setContent(initial.content || '');
+    setCategory(initial.category?._id || initial.category || '');
+    setPublished(typeof initial.published !== 'undefined' ? !!initial.published : true);
+    // set existing image preview when editing
+    if (initial.image) {
+      const base = process.env.NEXT_PUBLIC_API_URL || '';
+      const imageUrl = /^https?:\/\//i.test(initial.image) ? initial.image : `${base}${initial.image.startsWith('/') ? '' : '/'}${initial.image}`;
+      setImagePreview(imageUrl);
+    }
+  }, [initial]);
 
   useEffect(() => {
     if (autoSlug) setSlug(generateSlug(title));
@@ -38,7 +73,7 @@ export default function CreateBlogForm({ onCreated }) {
     // Load categories from backend (public endpoint)
     async function loadCategories() {
       try {
-        const base = process.env.NEXT_PUBLIC_API_URL || '';
+        const base = process.env.NEXT_PUBLIC_API_URL;
         const res = await fetch(`${base}/api/v1/categories`);
         if (!res.ok) return;
         const data = await res.json();
@@ -56,7 +91,7 @@ export default function CreateBlogForm({ onCreated }) {
     const textOnly = content ? content.replace(/<[^>]*>/g, '').trim() : '';
     if (!textOnly) e.content = 'Content is required';
     if (!category || !String(category).trim()) e.category = 'Category is required';
-    if (!image) e.image = 'Image is required';
+    if (!image && !(initial && initial.image)) e.image = 'Image is required';
     if (slug && !/^[a-z0-9\-_]+$/.test(slug)) e.slug = 'Slug may only contain lowercase letters, numbers, - and _';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -117,36 +152,50 @@ export default function CreateBlogForm({ onCreated }) {
         // ignore - localStorage not available
       }
 
-      const res = await fetch(`${base}/api/v1/blogs`, {
-        method: 'POST',
+      // If editing, send PUT to update the blog
+      const isEdit = initial && (initial._id || initial.slug);
+      const urlId = isEdit ? encodeURIComponent(String(initial._id || initial.slug)) : '';
+      const res = await fetch(isEdit ? `${base}/api/v1/blogs/${urlId}` : `${base}/api/v1/blogs`, {
+        method: isEdit ? 'PUT' : 'POST',
         credentials: base ? 'include' : 'same-origin',
         headers,
         body: form,
       });
       const data = await res.json();
       if (!res.ok) {
-        setStatus(data.message || 'Failed to create blog');
+        const msg = data && data.message ? data.message : (isEdit ? 'Failed to update blog' : 'Failed to create blog');
+        toast.current && toast.current.show({ severity: 'error', summary: 'Error', detail: msg, life: 4000 });
+        setStatus(null);
         return;
       }
-      setStatus('created');
+      // success
+      if (isEdit) {
+        toast.current && toast.current.show({ severity: 'success', summary: 'Updated', detail: 'Blog updated successfully', life: 3000 });
+      } else {
+        toast.current && toast.current.show({ severity: 'success', summary: 'Created', detail: 'Blog created successfully', life: 3000 });
+      }
       if (typeof onCreated === 'function') onCreated(data);
+      // clear form on create
       setTimeout(() => {
-        setTitle('');
-        setSlug('');
-        setExcerpt('');
-        setContent('');
-        setImage(null);
-        if (imagePreview) {
-          URL.revokeObjectURL(imagePreview);
-          setImagePreview(null);
+        if (!isEdit) {
+          setTitle('');
+          setSlug('');
+          setExcerpt('');
+          setContent('');
+          setImage(null);
+          if (imagePreview && image && image.preview) {
+            URL.revokeObjectURL(imagePreview);
+            setImagePreview(null);
+          }
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          setCategory('');
         }
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        setCategory('');
         setStatus(null);
-      }, 1000);
+      }, 2000);
     } catch (err) {
       console.error('Failed to create blog', err);
-      setStatus('Network error');
+      toast.current && toast.current.show({ severity: 'error', summary: 'Error', detail: 'Network error', life: 4000 });
+      setStatus(null);
     }
   }
 
@@ -154,8 +203,8 @@ export default function CreateBlogForm({ onCreated }) {
     <div className="mt-6">
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="p-5 border-b border-gray-100 ">
-          <h3 className="text-lg font-semibold">Create blog</h3>
-          <p className="text-sm text-gray-600 ">Add a new blog post.</p>
+          <h3 className="text-lg font-semibold">{isEdit ? 'Edit blog' : 'Create blog'}</h3>
+          <p className="text-sm text-gray-600 ">{isEdit ? 'Update your blog post.' : 'Add a new blog post.'}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
@@ -250,7 +299,7 @@ export default function CreateBlogForm({ onCreated }) {
             {errors.content && <p className="mt-1 text-xs text-red-600">{errors.content}</p>}
           </div>
 
-           <div>
+          <div>
             <label className="block text-xs font-medium text-gray-700">Visibility</label>
             <div className="mt-2">
               <select value={String(published)} onChange={(e) => setPublished(e.target.value === 'true')} className="block w-48 rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 border-gray-200 focus:ring-indigo-500">
@@ -263,23 +312,39 @@ export default function CreateBlogForm({ onCreated }) {
 
           <div className="flex items-center gap-3">
             <button type="submit" disabled={status === 'saving'} className="inline-flex items-center gap-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2">
-              {status === 'saving' ? <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg> : 'Create'}
+              {status === 'saving' ? <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg> : (isEdit ? 'Update' : 'Create')}
             </button>
             <button type="button" onClick={() => {
-              setTitle(''); setSlug(''); setExcerpt(''); setContent('');
-              setStatus(null); setErrors({}); setImage(null);
-              setPublished(true);
-              if (imagePreview) { URL.revokeObjectURL(imagePreview); setImagePreview(null); }
-              if (fileInputRef.current) fileInputRef.current.value = '';
-            }} className="px-3 py-2 rounded-md border bg-white text-sm">Reset</button>
+              if (isEdit) {
+                // restore initial values
+                setTitle(initial.title || '');
+                setSlug(initial.slug || '');
+                setExcerpt(initial.excerpt || '');
+                setContent(initial.content || '');
+                setStatus(null); setErrors({});
+                setImage(null);
+                setPublished(typeof initial.published !== 'undefined' ? !!initial.published : true);
+                if (initial.image) {
+                  const base = process.env.NEXT_PUBLIC_API_URL || '';
+                  const imageUrl = /^https?:\/\//i.test(initial.image) ? initial.image : `${base}${initial.image.startsWith('/') ? '' : '/'}${initial.image}`;
+                  setImagePreview(imageUrl);
+                } else {
+                  if (imagePreview) { URL.revokeObjectURL(imagePreview); setImagePreview(null); }
+                }
+                if (fileInputRef.current) fileInputRef.current.value = '';
+              } else {
+                setTitle(''); setSlug(''); setExcerpt(''); setContent('');
+                setStatus(null); setErrors({}); setImage(null);
+                setPublished(true);
+                if (imagePreview) { URL.revokeObjectURL(imagePreview); setImagePreview(null); }
+                if (fileInputRef.current) fileInputRef.current.value = '';
+              }
+            }} className="px-3 py-2 rounded-md border bg-white text-sm">{isEdit ? 'Cancel' : 'Reset'}</button>
           </div>
 
-         
 
-          {status === 'created' && <div className="p-3 rounded-md bg-green-50 text-green-800">Blog created successfully</div>}
-          {status && status !== 'saving' && status !== 'created' && typeof status === 'string' && (
-            <div className="p-3 rounded-md bg-red-50 text-red-800">{status}</div>
-          )}
+
+          <Toast ref={toast} />
         </form>
       </div>
     </div>

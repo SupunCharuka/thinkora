@@ -142,4 +142,60 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
   }
 });
 
+// Protected: update an existing blog (accept multipart form with optional image)
+router.put('/:id', authMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    let id = req.params.id;
+    if (!id || String(id) === 'undefined') {
+      const fallback = (req.body && (req.body.id || req.body._id || req.body.slug)) || null;
+      if (fallback) id = fallback; else return res.status(400).json({ message: 'Missing or invalid id parameter' });
+    }
+
+    // find by id or slug
+    let blog = null;
+    if (id.match && id.match(/^[0-9a-fA-F]{24}$/)) blog = await Blog.findById(id);
+    if (!blog) blog = await Blog.findOne({ slug: id });
+    if (!blog) return res.status(404).json({ message: 'Blog not found' });
+
+    const authorId = blog.author ? String(blog.author) : null;
+    const userId = req.userId || null;
+    if (!userId || String(authorId) !== String(userId)) return res.status(403).json({ message: 'Forbidden' });
+
+    const { title, slug: rawSlug, excerpt, content, category: categoryId, published } = req.body || {};
+
+    // update fields when provided
+    if (title && String(title).trim()) blog.title = String(title).trim();
+    if (rawSlug && String(rawSlug).trim()) blog.slug = String(rawSlug).trim();
+    if (typeof excerpt !== 'undefined') blog.excerpt = excerpt && String(excerpt).trim();
+    if (typeof content !== 'undefined' && String(content).trim()) blog.content = String(content).trim();
+    if (typeof categoryId !== 'undefined' && categoryId) blog.category = categoryId;
+    if (typeof published !== 'undefined') blog.published = (published === true || published === 'true' || published === '1' || published === 1) ? true : false;
+
+    // handle optional new image
+    const file = req.file;
+    if (file) {
+      // remove old file if present
+      try {
+        if (blog.image && typeof blog.image === 'string') {
+          const imagePath = blog.image.replace(/^\/+/, '');
+          const __filename = fileURLToPath(import.meta.url);
+          const __dirname = path.dirname(__filename);
+          const oldPath = path.join(__dirname, '..', imagePath);
+          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
+      } catch (err) {
+        console.warn('Failed to remove old blog image', err);
+      }
+      blog.image = `/uploads/blogs/${file.filename}`;
+    }
+
+    await blog.save();
+    const updated = await Blog.findById(blog._id).populate('category', 'name slug').populate('author', 'name email');
+    return res.json(updated);
+  } catch (err) {
+    console.error('Failed to update blog', err);
+    return res.status(500).json({ message: 'Failed to update blog' });
+  }
+});
+
 export default router;
