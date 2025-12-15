@@ -15,7 +15,8 @@ const router = express.Router();
 // Resolve `uploads` directory relative to this file to avoid issues when cwd differs.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const uploadDir = path.join(__dirname, '..', 'uploads');
+// store blog images under uploads/blogs for clearer organization
+const uploadDir = path.join(__dirname, '..', 'uploads', 'blogs');
 
 // Ensure upload directory exists
 try {
@@ -127,7 +128,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
       slug,
       excerpt: excerpt && String(excerpt).trim(),
       content: content.trim(),
-      image: `/uploads/${file.filename}`,
+      image: `/uploads/blogs/${file.filename}`,
       author: req.userId || null,
       category: category._id,
       published: publishedBool,
