@@ -287,11 +287,19 @@ export default function ViewBlogsPage() {
                                     >
                                         <Column header="Image" body={(row) => {
                                             const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
-                                            const image = row.image ? (/^https?:\/\//i.test(row.image) ? row.image : `${baseUrl}${row.image.startsWith('/') ? '' : '/'}${row.image}`) : '/images/placeholder.svg';
+                                            // If the image path is a local absolute path (starts with '/'),
+                                            // use it as a same-origin URL so the Next dev server can
+                                            // proxy it (see next.config.mjs rewrites). This avoids
+                                            // Next's private-IP blocking when optimizing images from localhost.
+                                            const image = row.image
+                                                ? (/^https?:\/\//i.test(row.image)
+                                                    ? row.image
+                                                    : (row.image.startsWith('/') ? row.image : `${baseUrl}${row.image.startsWith('/') ? '' : '/'}${row.image}`))
+                                                : '/images/placeholder.svg';
                                             return (
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-12 h-9 sm:w-16 sm:h-12 relative rounded overflow-hidden bg-gray-100">
-                                                        <Image src={image} alt={row.title} fill className="object-cover" unoptimized />
+                                                        <Image src={image} alt={row.title} fill className="object-cover" />
                                                     </div>
                                                 </div>
                                             );

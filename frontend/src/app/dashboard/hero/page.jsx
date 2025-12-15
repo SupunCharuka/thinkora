@@ -96,13 +96,24 @@ export default function HeroSelectorPage() {
 
     const imageTemplate = (row) => {
         const envBase = (process?.env?.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
-        const defaultBackend = (typeof window !== 'undefined') ? `${window.location.protocol}//${window.location.hostname}:5000` : 'http://localhost:5000';
-        const baseUrl = envBase || defaultBackend;
-        const imageSrc = row.image ? (/^https?:\/\//i.test(row.image) ? row.image : `${baseUrl}${row.image.startsWith('/') ? '' : '/'}${row.image}`) : '/images/placeholder.svg';
+        let imageSrc;
+        if (!row.image) {
+            imageSrc = '/images/placeholder.svg';
+        } else if (/^https?:\/\//i.test(row.image)) {
+            imageSrc = row.image;
+        } else if (row.image.startsWith('/')) {
+            // same-origin absolute path -> will be proxied by Next dev server
+            imageSrc = row.image;
+        } else if (envBase) {
+            imageSrc = `${envBase}/${row.image}`;
+        } else {
+            imageSrc = `/${row.image}`;
+        }
+
         return (
             <div className="flex items-center">
                 <div className="w-20 h-12 relative rounded overflow-hidden bg-gray-100">
-                    <Image src={imageSrc} alt={row.title || 'image'} fill className="object-cover" unoptimized />
+                    <Image src={imageSrc} alt={row.title || 'image'} fill className="object-cover" />
                 </div>
             </div>
         );

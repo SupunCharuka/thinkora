@@ -11,6 +11,16 @@ const nextConfig = {
       { protocol: 'http', hostname: '127.0.0.1', port: '5000', pathname: '/uploads/**' },
     ],
   },
+  // Proxy local uploads to backend during development to avoid
+  // Next's private-IP blocking when optimizing images from localhost.
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/uploads/:path*',
+  //       destination: 'http://localhost:5000/uploads/:path*',
+  //     },
+  //   ];
+  // },
 };
 
 export default nextConfig;
