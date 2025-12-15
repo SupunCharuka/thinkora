@@ -52,7 +52,30 @@ const generateSlug = (str = '') =>
 // Public: list blogs (only published)
 router.get('/', async (req, res) => {
   try {
-    const blogs = await Blog.find({ published: true }).sort({ createdAt: -1 }).populate('category', 'name slug').populate('author', 'name email');
+    // Support query params: ?hero=true to return only hero-ranked blogs,
+    // and ?limit=N to limit the number of results (default: all)
+    const { hero, limit } = req.query || {};
+    const q = { published: true };
+
+    if (hero === 'true' || hero === '1') {
+      q.heroRank = { $ne: null };
+    }
+
+    const l = typeof limit !== 'undefined' ? parseInt(limit, 10) || 0 : 0;
+
+    const query = Blog.find(q).populate('category', 'name slug').populate('author', 'name email');
+
+    // If requesting hero blogs, sort by heroRank ascending so rank 1 appears first,
+    // otherwise show newest first.
+    if (hero === 'true' || hero === '1') {
+      query.sort({ heroRank: 1, createdAt: -1 });
+    } else {
+      query.sort({ createdAt: -1 });
+    }
+
+    if (l > 0) query.limit(l);
+
+    const blogs = await query.exec();
     return res.json(blogs);
   } catch (err) {
     console.error('Failed to list blogs', err);

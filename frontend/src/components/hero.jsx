@@ -43,7 +43,14 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
 
     const image = normalize(s.image) || makeDefault(1600, 900);
     const thumb = normalize(s.imageThumb || s.image) || makeDefault(200, 160);
-    return { ...s, __image: image, __thumb: thumb };
+
+    // Map backend populated fields to simple display-friendly props
+    const categoryName = s.category && typeof s.category === 'object' ? (s.category.name || s.category.slug) : (s.category || 'Lifestyle');
+    const authorName = s.author && typeof s.author === 'object' ? (s.author.name || '') : (s.author || 'John Doe');
+    const authorImage = s.author && typeof s.author === 'object' ? (s.author.avatar || s.author.image || null) : (s.authorImage || null);
+    const date = s.createdAt ? new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : (s.date || null);
+
+    return { ...s, __image: image, __thumb: thumb, category: categoryName, author: authorName, authorImage, date };
   });
 
   useEffect(() => {
@@ -183,7 +190,7 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
                   >
                     <div className={`h-12 w-12 md:h-16 md:w-16 rounded-md overflow-hidden flex-shrink-0 bg-slate-400 ${isActive ? 'ring-2 ring-white/30' : ''}`}>
                       <Image
-                        src={r.__thumb}
+                        src={r.__thumb || r.__image}
                         alt="thumb"
                         width={64}
                         height={64}
