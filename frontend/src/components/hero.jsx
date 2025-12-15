@@ -14,10 +14,8 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
   const visibleSlides = slides.slice(0, 4);
 
   // ensure each visible slide has a stable image and thumbnail URL
-  const slidesWithImages = visibleSlides.map((s, i) => {
-    const seed = s.slug || i;
+  const slidesWithImages = visibleSlides.map((s) => {
     const envBase = (process?.env?.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
-    const makeDefault = (w, h) => `https://picsum.photos/seed/${encodeURIComponent(seed)}/${w}/${h}`;
 
     const normalize = (src) => {
       if (!src) return null;
@@ -41,16 +39,14 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
       return `/${src}`;
     };
 
-    const image = normalize(s.image) || makeDefault(1600, 900);
-    const thumb = normalize(s.imageThumb || s.image) || makeDefault(200, 160);
+    const image = normalize(s.image) || '/images/placeholder.svg';
+    const thumb = normalize(s.imageThumb || s.image) || '/images/placeholder.svg';
 
     // Map backend populated fields to simple display-friendly props
     const categoryName = s.category && typeof s.category === 'object' ? (s.category.name || s.category.slug) : (s.category || 'Lifestyle');
-    const authorName = s.author && typeof s.author === 'object' ? (s.author.name || '') : (s.author || 'John Doe');
-    const authorImage = s.author && typeof s.author === 'object' ? (s.author.avatar || s.author.image || null) : (s.authorImage || null);
     const date = s.createdAt ? new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : (s.date || null);
 
-    return { ...s, __image: image, __thumb: thumb, category: categoryName, author: authorName, authorImage, date };
+    return { ...s, __image: image, __thumb: thumb, category: categoryName, date };
   });
 
   useEffect(() => {
@@ -158,18 +154,8 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
             <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold leading-tight mb-3">{current.title || 'The Future of Work: Remote, AI-Driven, and Flexible'}</h1>
             <p className="text-sm sm:text-base text-white/90 max-w-xl mb-4">{current.excerpt || 'Once dismissed as counterculture, urban fashion has moved from the sidewalks to the catwalks of major fashion capitals.'}</p>
 
-            <div className="flex items-center gap-3 mt-4">
-              <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
-                      <Image
-                        src={current.authorImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=60'}
-                        alt="author"
-                        width={40}
-                        height={40}
-                        className="h-full w-full object-cover"
-                      />
-              </div>
+            <div className="mt-4">
               <div className="text-sm text-white/90">
-                <div className="font-medium">{current.author || 'John Doe'}</div>
                 <div className="text-xs text-white/70">{current.date || '25th July 2025'}</div>
               </div>
             </div>

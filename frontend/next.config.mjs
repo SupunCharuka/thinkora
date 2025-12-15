@@ -30,6 +30,18 @@ const nextConfig = {
     remotePatterns,
   },
 
+  // Proxy local uploads to backend during development to avoid
+  // Next's private-IP blocking when optimizing images from localhost.
+  async rewrites() {
+    if (!apiUrl) return [];
+    const dest = apiUrl.replace(/\/$/, '') + '/uploads/:path*';
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: dest,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
