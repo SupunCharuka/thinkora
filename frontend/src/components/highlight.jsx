@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
-export default function Trending() {
+export default function Highlight() {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
 
@@ -41,7 +41,7 @@ export default function Trending() {
               
 
               <div>
-                <h3 className="text-3xl font-bold">Top Trending</h3>
+                <h3 className="text-3xl font-bold">Top Highlight</h3>
                 <p className="text-sm text-gray-500">Today's Most Popular Stories</p>
               </div>
             </div>

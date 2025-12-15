@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Hero from '@/components/hero';
-import Trending from '@/components/trending';
+import Highlight from '@/components/highlight';
 import MostViewed from '@/components/mostViewed';
 import Latest from '@/components/latest';
 
@@ -19,7 +19,7 @@ export default async function Home() {
     <div className="container mx-auto py-2">
       <Hero blogs={heroBlogs} />
 
-      <Trending />
+      <Highlight />
 
       <MostViewed />
 

@@ -142,7 +142,7 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
         <div className="relative z-10 max-w-6xl mx-auto px-6 md:px-8 h-full grid grid-cols-1 md:grid-cols-4 items-center">
           <div className="md:col-span-2 pr-0 md:pr-8 text-white py-6 md:py-0" style={contentStyle}>
             <span className="inline-block bg-white/10 text-sm text-white/90 rounded-full px-3 py-1 mb-4">{current.category || 'Lifestyle'}</span>
-            <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold leading-tight mb-3">{current.title || 'The Future of Work: Remote, AI-Driven, and Flexible'}</h1>
+            <h1 className="text-xl sm:text-3xl font-extrabold leading-tight mb-3">{current.title || 'The Future of Work: Remote, AI-Driven, and Flexible'}</h1>
             <p className="text-sm sm:text-base text-white/90 max-w-xl mb-4">{current.excerpt || 'Once dismissed as counterculture, urban fashion has moved from the sidewalks to the catwalks of major fashion capitals.'}</p>
 
             <div className="mt-4">

@@ -106,11 +106,7 @@ export default function CreateCategoryForm({ onCreated, category, onUpdated, sho
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         {showHeader && (
           <div className="p-5 border-b border-gray-100  flex items-start gap-4">
-            <div className="flex-shrink-0 h-12 w-12 rounded-md bg-indigo-50 flex items-center justify-center text-indigo-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
-              </svg>
-            </div>
+            
             <div>
               <h3 className="text-lg font-semibold">{category ? 'Edit category' : 'Create category'}</h3>
               <p className="text-sm text-gray-600">{category ? 'Update category details.' : 'Add a new category for posts. Slug is used in URLs.'}</p>
