@@ -51,6 +51,13 @@ export default function Highlight() {
     return () => { mounted = false; };
   }, []);
 
+  const formatDate = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
   return (
     <section
       ref={ref}
@@ -104,7 +111,7 @@ export default function Highlight() {
                         <span className="inline-block">{blog.title}</span>
                         <span className="block h-[2px] bg-white transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mt-2" aria-hidden="true" />
                       </h4>
-                      <p className="text-sm text-white/90 mt-2 drop-shadow-sm opacity-95">{blog.author && (blog.author.name || blog.author)} · {blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : blog.date}</p>
+                      <p className="text-sm text-white/90 mt-2 drop-shadow-sm opacity-95">{formatDate(blog.createdAt || blog.date)}</p>
                     </div>
                   </div>
                 </Link>
