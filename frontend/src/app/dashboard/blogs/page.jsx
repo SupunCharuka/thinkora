@@ -206,6 +206,30 @@ export default function ViewBlogsPage() {
                     }
                 });
             }} />
+            <Button icon="pi pi-star" className={`p-button-sm ${row.highlighted ? 'p-button-warning' : 'p-button-outlined'}`} aria-label={`Highlight ${row.title}`} onClick={async () => {
+                const id = row._id || row.id || row.slug;
+                if (!id || String(id) === 'undefined') { console.error('Invalid id for highlight', id); return; }
+                try {
+                    const urlId = encodeURIComponent(String(id));
+                    const res = await fetch(`/api/v1/dashboard/blogs/${urlId}/highlight`, {
+                        method: 'PATCH',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ highlighted: !row.highlighted }),
+                    });
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        toast.current && toast.current.show({ severity: 'error', summary: 'Error', detail: err.message || 'Failed to toggle highlight', life: 4000 });
+                        return;
+                    }
+                    const updated = await res.json();
+                    setBlogs(prev => prev.map(b => (String(b._id || b.id) === String(updated._id || updated.id) ? ({ ...b, highlighted: !!updated.highlighted }) : b)));
+                    toast.current && toast.current.show({ severity: 'success', summary: 'Updated', detail: updated.highlighted ? 'Blog highlighted' : 'Highlight removed', life: 3000 });
+                } catch (err) {
+                    console.error('Highlight error', err);
+                    toast.current && toast.current.show({ severity: 'error', summary: 'Error', detail: 'Network error', life: 4000 });
+                }
+            }} />
         </div>
     );
 

@@ -112,6 +112,42 @@ router.patch('/:id/hero', async (req, res) => {
   }
 });
 
+// Toggle highlighted flag for a user's blog (boolean highlighted)
+router.patch('/:id/highlight', async (req, res) => {
+  try {
+    const userId = req.userId || null;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    let id = req.params.id;
+    const { highlighted } = req.body || {};
+
+    if (!id || String(id) === 'undefined') {
+      const fallback = (req.body && (req.body.id || req.body._id || req.body.slug)) || null;
+      if (fallback) id = fallback; else return res.status(400).json({ message: 'Missing or invalid id parameter' });
+    }
+
+    if (typeof highlighted === 'undefined') return res.status(400).json({ message: 'Missing highlighted value' });
+
+    // find blog by id or slug
+    let blog = null;
+    if (id.match && id.match(/^[0-9a-fA-F]{24}$/)) blog = await Blog.findById(id);
+    if (!blog) blog = await Blog.findOne({ slug: id });
+    if (!blog) return res.status(404).json({ message: 'Blog not found' });
+
+    const authorId = blog.author ? String(blog.author) : null;
+    if (!authorId || String(authorId) !== String(userId)) return res.status(403).json({ message: 'Forbidden' });
+
+    blog.highlighted = !!highlighted;
+    await blog.save();
+
+    const updated = await Blog.findById(blog._id).populate('category', 'name slug').populate('author', 'name email');
+    return res.json(updated);
+  } catch (err) {
+    console.error('Failed to update highlighted flag', err);
+    return res.status(500).json({ message: 'Failed to update highlighted flag', error: err.message });
+  }
+});
+
 export default router;
 
 // Delete a user's blog and remove uploaded image file
