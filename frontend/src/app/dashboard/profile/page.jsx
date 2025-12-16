@@ -2,8 +2,15 @@
 import React from "react";
 import Sidebar from "@/components/dashboard/sidebar";
 import ProfileSettings from "@/components/dashboard/profileSettings";
+import useDashboardAuth from "@/hooks/useDashboardAuth";
 
 export default function ProfilePage() {
+  const { loading: checking } = useDashboardAuth();
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">Loading…</div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <div className="flex">
