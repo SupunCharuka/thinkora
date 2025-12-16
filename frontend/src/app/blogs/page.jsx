@@ -115,14 +115,35 @@ export default function blogsPage() {
 	const hero = blogs.find(b => b?.highlighted || b?.isHighlighted) || blogs[0];
 	const others = blogs.filter(b => b !== hero);
 
+	// Search state (client-side, debounced)
+	const [query, setQuery] = useState('');
+	const [debouncedQuery, setDebouncedQuery] = useState('');
+
+	useEffect(() => {
+		const t = setTimeout(() => setDebouncedQuery(query.trim()), 300);
+		return () => clearTimeout(t);
+	}, [query]);
+
 	const categories = Array.from(new Set(blogs.flatMap(p => normalizeCategories(p.category)))).sort();
 	const filterOptions = ['All blog', ...categories];
 	const [activeFilter, setActiveFilter] = useState('All blog');
 
-	// include all blogs so the grid shows the first blog as well
+	// reset visible count when filter or search changes
+	useEffect(() => {
+		setVisibleCount(STEP);
+	}, [debouncedQuery, activeFilter]);
+
+	// include all blogs so the grid shows the first blog as well; also apply search
 	const gridblogs = blogs.filter(p => {
-		if (activeFilter === 'All blog') return true;
-		return normalizeCategories(p.category).includes(activeFilter);
+		if (activeFilter !== 'All blog' && !normalizeCategories(p.category).includes(activeFilter)) return false;
+		if (debouncedQuery) {
+			const q = debouncedQuery.toLowerCase();
+			const inTitle = (p.title || '').toLowerCase().includes(q);
+			const inExcerpt = (p.excerpt || '').toLowerCase().includes(q);
+			const inCategory = normalizeCategories(p.category).some(c => c.toLowerCase().includes(q));
+			return inTitle || inExcerpt || inCategory;
+		}
+		return true;
 	});
 
 	// Pagination / page size
@@ -169,8 +190,33 @@ export default function blogsPage() {
 				</ol>
 			</nav>
 
-			<div className="mb-6 flex items-center gap-4">
-				<div className="text-sm text-gray-500">Show me:</div>
+			{/* Search bar (centered) */}
+			<div className="mb-6 flex justify-center">
+				<div className="w-full max-w-3xl relative">
+					<span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+						<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+					</span>
+					<input
+						type="search"
+						value={query}
+						onChange={e => setQuery(e.target.value)}
+						placeholder="Search articles, excerpts, categories..."
+						className="w-full px-12 py-3 rounded-full border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+					/>
+					{query && (
+						<button
+							onClick={() => setQuery('')}
+							aria-label="Clear search"
+							className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+						</button>
+					)}
+				</div>
+			</div>
+
+			<div className="mb-4 flex items-center gap-4">
+			
 				<div className="flex flex-wrap items-center gap-3">
 					{filterOptions.map(opt => {
 						const count = opt === 'All blog' ? blogs.length : blogs.filter(p => normalizeCategories(p.category).includes(opt)).length;
