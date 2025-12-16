@@ -151,6 +151,20 @@ export default function blogsPage() {
 	return (
 		<main className="mx-auto">
 
+			{/* Breadcrumb */}
+			<nav aria-label="Breadcrumb" className="mb-4">
+				<ol className="flex items-center gap-2 text-sm text-gray-600">
+					<li>
+						<Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900">
+							<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2.5L2 8v9a.5.5 0 00.5.5H7a.5.5 0 00.5-.5V13a1 1 0 011-1h2a1 1 0 011 1v4.5a.5.5 0 00.5.5h4.5a.5.5 0 00.5-.5V8l-8-5.5z"/></svg>
+							<span>Home</span>
+						</Link>
+					</li>
+					<li className="text-gray-300">/</li>
+					<li className="font-semibold text-gray-900">Blogs</li>
+				</ol>
+			</nav>
+
 			<div className="mb-6 flex items-center gap-4">
 				<div className="text-sm text-gray-500">Show me:</div>
 				<div className="flex flex-wrap items-center gap-3">
