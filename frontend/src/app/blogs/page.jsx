@@ -51,11 +51,13 @@ function BlogCard({ blog }) {
 				</span>
 			</div>
 
-			<div className="absolute top-4 right-4">
-				<div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
-					<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg>
+			{(blog.highlighted) && (
+				<div className="absolute top-4 right-4">
+					<div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+						<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg>
+					</div>
 				</div>
-			</div>
+			)}
 
 			<div className="absolute bottom-6 left-4 right-4">
 				{/* Excerpt: show only on hover as a creative overlay (above the title) */}
@@ -92,7 +94,14 @@ export default function blogsPage() {
 				const data = await res.json();
 				const items = Array.isArray(data) ? data : (data?.blogs || []);
 				if (!mounted) return;
-				setBlogs(items);
+				// Bring highlighted blogs to the front while preserving relative order
+				const sorted = [...items].sort((a, b) => {
+					const ah = Boolean(a?.highlighted || a?.isHighlighted);
+					const bh = Boolean(b?.highlighted || b?.isHighlighted);
+					if (ah === bh) return 0;
+					return ah ? -1 : 1; // highlighted first
+				});
+				setBlogs(sorted);
 			} catch (err) {
 				console.error(err);
 			} finally {
@@ -103,8 +112,8 @@ export default function blogsPage() {
 		return () => { mounted = false; };
 	}, []);
 
-	const hero = blogs[0];
-	const others = blogs.slice(1);
+	const hero = blogs.find(b => b?.highlighted || b?.isHighlighted) || blogs[0];
+	const others = blogs.filter(b => b !== hero);
 
 	const categories = Array.from(new Set(blogs.flatMap(p => normalizeCategories(p.category)))).sort();
 	const filterOptions = ['All blog', ...categories];
@@ -192,10 +201,10 @@ export default function blogsPage() {
 			<div className="py-6 flex justify-center">
 				<Link
 					href="/trending"
-					aria-label="Show more trending blogs"
+					aria-label="See more trending blogs"
 					className="group inline-flex items-center gap-3 bg-[#0b1220] hover:bg-gradient-to-r hover:from-[#0b1220] hover:to-[#0f1724] text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
 				>
-					<span className="text-sm font-medium transition-colors duration-200">Show me more</span>
+					<span className="text-sm font-medium transition-colors duration-200">See more</span>
 
 					<span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 transition-transform duration-200 transform group-hover:translate-x-1 group-hover:bg-white/10">
 						<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
