@@ -61,6 +61,13 @@ export default function Highlight() {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  const truncate = (str, n = 140) => {
+    if (!str) return '';
+    const s = String(str).trim();
+    return s.length > n ? `${s.slice(0, n - 1).trim()}…` : s;
+  };
+
+
   const hasMore = Array.isArray(items) && items.length >= limit && items.length > 0;
 
   return (
@@ -112,6 +119,16 @@ export default function Highlight() {
                     </div>
 
                     <div className="absolute bottom-6 left-4 right-4">
+                      {/* Excerpt: show only on hover as a creative overlay (above the title) */}
+                      {blog.excerpt ? (
+                        <div className="mb-2">
+                          <div className="opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                            <div className="bg-black/60 backdrop-blur-sm p-3 rounded-md">
+                              <p className="text-sm text-white/90 leading-relaxed">{truncate(blog.excerpt, 160)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
                       <h4 className="text-white text-2xl sm:text-xl font-bold leading-tight drop-shadow-lg transition-all duration-300 group-hover:-translate-y-1">
                         <span className="inline-block">{blog.title}</span>
                         <span className="block h-[2px] bg-white transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mt-2" aria-hidden="true" />
