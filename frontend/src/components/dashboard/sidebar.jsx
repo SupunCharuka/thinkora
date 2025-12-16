@@ -55,6 +55,12 @@ export default function Sidebar({ mobile = false, onClose }) {
               <span className="text-sm font-medium">Hero selector</span>
             </Link>
           </li>
+          <li>
+            <Link href="/dashboard/profile" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5">
+              <span className="w-2 h-2 rounded-full bg-violet-400" />
+              <span className="text-sm font-medium">Profile</span>
+            </Link>
+          </li>
         </ul>
       </nav>
 
