@@ -332,6 +332,34 @@ export default function blogsPage() {
 				})}
 			</section>
 
+			{gridblogs.length === 0 && (
+				<div className="py-16 text-center col-span-full">
+					<p className="text-gray-600 mb-4 text-lg">
+						No results found{debouncedQuery ? ` for "${debouncedQuery}"` : ''}.
+					</p>
+					<p className="text-sm text-gray-500 mb-6">Try different keywords, clear filters, or view all posts.</p>
+					<div className="flex items-center justify-center gap-3">
+						<button
+							onClick={() => {
+								setQuery('');
+								setDebouncedQuery('');
+								setCategoryFilter(null);
+								setPrimaryFilter(null);
+							}}
+							className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-gray-800 border border-gray-200 shadow-sm hover:shadow-md"
+						>
+							Clear filters
+						</button>
+						<button
+							onClick={() => { setQuery(''); setDebouncedQuery(''); setCategoryFilter(null); setPrimaryFilter('Latest'); }}
+							className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 text-white shadow-lg hover:scale-105"
+						>
+							Show latest
+						</button>
+					</div>
+				</div>
+			)}
+
 			<div className="py-6 flex flex-col items-center gap-3">
 				<div className="flex items-center gap-3">
 					{visibleCount > STEP && (
