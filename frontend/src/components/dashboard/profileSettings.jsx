@@ -1,57 +1,103 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import useDashboardAuth from '@/hooks/useDashboardAuth';
+import React, { useEffect, useState } from 'react';
 
 export default function ProfileSettings() {
-  const { data } = useDashboardAuth({ redirect: false });
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [bio, setBio] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [bio, setBio] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(null);
 
   useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setStatus(null);
+      try {
+        const res = await fetch('/api/v1/auth/profile');
+        if (res.ok) {
+          const data = await res.json();
+          const u = data.user || data;
+          if (!mounted) return;
+          setName(u.name || '');
+          setEmail(u.email || '');
+          setBio(u.bio || '');
+        } else {
+          const raw = localStorage.getItem('user');
+          if (raw && mounted) {
+            const u = JSON.parse(raw);
+            setName(u.name || '');
+            setEmail(u.email || '');
+            setBio(u.bio || '');
+          }
+        }
+      } catch (err) {
+        const raw = localStorage.getItem('user');
+        if (raw && mounted) {
+          const u = JSON.parse(raw);
+          setName(u.name || '');
+          setEmail(u.email || '');
+          setBio(u.bio || '');
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  function validate() {
+    if (!name || !name.toString().trim()) { setStatus('Name is required'); return false; }
+    if (!email || !email.toString().trim()) { setStatus('Email is required'); return false; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { setStatus('Enter a valid email'); return false; }
+    return true;
+  }
+
+  async function save(e) {
+    e && e.preventDefault && e.preventDefault();
+    setStatus(null);
+    if (!validate()) return;
+    setSaving(true);
+    setStatus('Saving...');
     try {
-      const stored = JSON.parse(localStorage.getItem("profile") || "null");
-      if (stored) {
-        setName(stored.name || "");
-        setEmail(stored.email || "");
-        setBio(stored.bio || "");
+      const res = await fetch('/api/v1/auth/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), bio }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus(data?.message || 'Failed to save profile');
         return;
       }
-    } catch (e) {
-      // ignore
-    }
 
-    if (data?.user) {
-      setName(data.user.name || "");
-      setEmail(data.user.email || "");
-      setBio(data.user.bio || "");
-    }
-  }, [data]);
-
-  const save = async (e) => {
-    e.preventDefault();
-    const profile = { name, email, bio };
-    try {
-      localStorage.setItem("profile", JSON.stringify(profile));
-      setStatus("Saved locally");
-
-      // Try backend save but it's optional; failure is non-fatal
       try {
-        const res = await fetch('/api/v1/auth/profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(profile),
-        });
-        if (res.ok) setStatus('Saved to backend');
-        else setStatus('Saved locally (backend responded with error)');
-      } catch (err) {
-        // backend not available — keep local save
-      }
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        } else {
+          const raw = localStorage.getItem('user');
+          if (raw) {
+            const u = JSON.parse(raw);
+            const merged = { ...u, name: name.trim(), email: email.trim(), bio };
+            localStorage.setItem('user', JSON.stringify(merged));
+          }
+        }
+        try { window.dispatchEvent(new Event('authChange')); } catch (e) {}
+      } catch (e) { /* ignore */ }
+
+      setStatus('Saved');
     } catch (err) {
-      setStatus('Save failed: ' + (err.message || 'unknown'));
+      console.error('Save profile error', err);
+      setStatus(err?.message || 'Network error');
+    } finally {
+      setSaving(false);
     }
-  };
+  }
+
+  if (loading) return <div className="p-6">Loading...</div>;
 
   return (
     <form onSubmit={save} className="p-6">
@@ -88,8 +134,8 @@ export default function ProfileSettings() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button type="submit" className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-            Save profile
+          <button type="submit" className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700" disabled={saving}>
+            {saving ? 'Saving…' : 'Save profile'}
           </button>
           {status && <div className="text-sm text-gray-600">{status}</div>}
         </div>

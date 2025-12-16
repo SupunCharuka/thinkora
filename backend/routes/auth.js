@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { JWT_SECRET } from '../config.js';
+import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -47,6 +48,50 @@ router.post('/login', async (req, res) => {
     return res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
     console.error('Login error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update profile (protected)
+router.put('/profile', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId || (req.user && req.user.id);
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    const { name, email, bio } = req.body || {};
+    if (!name || !email) return res.status(400).json({ message: 'Name and email are required' });
+
+    // Check if email is used by another user
+    const existing = await User.findOne({ email, _id: { $ne: userId } });
+    if (existing) return res.status(409).json({ message: 'Email already in use' });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.name = name;
+    user.email = email;
+    if (typeof bio !== 'undefined') user.bio = bio;
+    await user.save();
+
+    return res.json({ user: { id: user._id, name: user.name, email: user.email, bio: user.bio } });
+  } catch (err) {
+    console.error('Profile update error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get current user profile (protected)
+router.get('/profile', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId || (req.user && req.user.id);
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    const user = await User.findById(userId).select('name email bio');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    return res.json({ user: { id: user._id, name: user.name, email: user.email, bio: user.bio } });
+  } catch (err) {
+    console.error('Profile fetch error', err);
     return res.status(500).json({ message: 'Server error' });
   }
 });
