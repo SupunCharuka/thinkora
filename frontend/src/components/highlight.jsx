@@ -147,7 +147,7 @@ export default function Highlight() {
             aria-label="Load more highlights"
             className="group inline-flex items-center gap-3 bg-[#0b1220] hover:bg-gradient-to-r hover:from-[#0b1220] hover:to-[#0f1724] text-white px-4 py-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
           >
-            <span className="text-sm font-medium transition-colors duration-200">{loading ? 'Loading...' : (hasMore ? 'Show more' : 'No more')}</span>
+            <span className="text-sm font-medium transition-colors duration-200">{loading ? 'Loading...' : (hasMore ? 'Load more' : 'No more')}</span>
 
             <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 transition-transform duration-200 transform group-hover:translate-x-1 group-hover:bg-white/10">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
