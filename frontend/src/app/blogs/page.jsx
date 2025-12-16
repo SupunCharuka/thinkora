@@ -125,6 +125,11 @@ export default function blogsPage() {
 		return normalizeCategories(p.category).includes(activeFilter);
 	});
 
+	// Pagination / page size
+	const STEP = 8;
+	const [visibleCount, setVisibleCount] = useState(STEP);
+	const shownBlogs = gridblogs.slice(0, visibleCount);
+
 	// Reveal-on-scroll for the blogs grid using IntersectionObserver
 	const sectionRef = useRef(null);
 	const [sectionVisible, setSectionVisible] = useState(false);
@@ -192,26 +197,32 @@ export default function blogsPage() {
 				ref={sectionRef}
 				className={`mt-6 transform transition-all duration-700 ease-out grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ${sectionVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
 			>
-				{gridblogs.map((p, i) => {
+				{shownBlogs.map((p, i) => {
 					const key = p?._id ?? p?.id ?? p?.slug ?? `${(p?.title || 'blog')}-${i}`;
 					return <BlogCard key={key} blog={p} />;
 				})}
 			</section>
 
-			<div className="py-6 flex justify-center">
-				<Link
-					href="/trending"
-					aria-label="See more trending blogs"
-					className="group inline-flex items-center gap-3 bg-[#0b1220] hover:bg-gradient-to-r hover:from-[#0b1220] hover:to-[#0f1724] text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
-				>
-					<span className="text-sm font-medium transition-colors duration-200">See more</span>
+			<div className="py-6 flex flex-col items-center gap-3">
+				<div className="flex items-center gap-3">
+					{visibleCount > STEP && (
+						<button
+							onClick={() => setVisibleCount(Math.max(STEP, visibleCount - STEP))}
+							className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-gray-800 shadow-sm hover:shadow-md"
+						>
+							Show less
+						</button>
+					)}
 
-					<span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 transition-transform duration-200 transform group-hover:translate-x-1 group-hover:bg-white/10">
-						<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-							<path d="M9 18l6-6-6-6" />
-						</svg>
-					</span>
-				</Link>
+					{visibleCount < gridblogs.length && (
+						<button
+							onClick={() => setVisibleCount(Math.min(visibleCount + STEP, gridblogs.length))}
+							className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0b1220] text-white shadow-lg hover:scale-105"
+						>
+							See more
+						</button>
+					)}
+				</div>
 			</div>
 		</main>
 	);
