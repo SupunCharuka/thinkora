@@ -138,26 +138,33 @@ export default function blogsPage() {
 	}, [query]);
 
 	const categories = Array.from(new Set(blogs.flatMap(p => normalizeCategories(p.category)))).sort();
-	const filterOptions = ['All blog', 'Latest', 'Recent', ...categories];
-	const primaryFilters = ['All blog', 'Latest', 'Recent'];
-	const [activeFilter, setActiveFilter] = useState('All blog');
+	const filterOptions = ['Latest', 'Recent', ...categories];
+	const primaryFilters = ['Latest', 'Recent'];
+	const [primaryFilter, setPrimaryFilter] = useState(null);
+	const [categoryFilter, setCategoryFilter] = useState(null);
 
 	// reset visible count when filter or search changes
 	useEffect(() => {
 		setVisibleCount(STEP);
-	}, [debouncedQuery, activeFilter]);
+	}, [debouncedQuery, primaryFilter, categoryFilter]);
 
 	// include all blogs so the grid shows the first blog as well; also apply search and filters
 	let gridblogs = blogs.filter(p => {
-		// handle Recent filter
-		if (activeFilter === 'Recent') {
+		// primary Recent filter
+		if (primaryFilter === 'Recent') {
 			const d = parseDateValue(p.createdAt || p.date);
 			if (!d || !isRecent(d, 7)) return false;
 		}
 
-		// handle category filter (Latest and All blog skip category filtering)
-		if (activeFilter !== 'All blog' && activeFilter !== 'Latest' && activeFilter !== 'Recent') {
-			if (!normalizeCategories(p.category).includes(activeFilter)) return false;
+		// category filter
+		if (categoryFilter) {
+			const cats = normalizeCategories(p.category);
+			if (!cats) return false;
+			if (Array.isArray(cats)) {
+				if (!cats.includes(categoryFilter)) return false;
+			} else {
+				if (String(cats) !== categoryFilter) return false;
+			}
 		}
 
 		// search
@@ -172,7 +179,7 @@ export default function blogsPage() {
 	});
 
 	// if Latest selected, sort by date desc
-	if (activeFilter === 'Latest') {
+	if (primaryFilter === 'Latest') {
 		gridblogs = [...gridblogs].sort((a, b) => {
 			const da = parseDateValue(a.createdAt || a.date) || new Date(0);
 			const db = parseDateValue(b.createdAt || b.date) || new Date(0);
@@ -234,7 +241,7 @@ export default function blogsPage() {
 						type="search"
 						value={query}
 						onChange={e => setQuery(e.target.value)}
-						placeholder="Search articles, excerpts, categories..."
+						placeholder="Search..."
 						className="w-full px-12 py-3 rounded-full border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 					/>
 					{query && (
@@ -254,27 +261,24 @@ export default function blogsPage() {
 				<div className="flex items-center gap-3 mb-3 overflow-x-auto whitespace-nowrap py-2 -mx-3 px-3">
 					{primaryFilters.map(opt => {
 						let count = 0;
-						if (opt === 'All blog') count = blogs.length;
-						else if (opt === 'Latest') count = blogs.length;
+						if (opt === 'Latest') count = blogs.length;
 						else if (opt === 'Recent') count = blogs.filter(b => {
 							const d = parseDateValue(b.createdAt || b.date);
 							return d && isRecent(d, 7);
 						}).length;
-						const isActive = activeFilter === opt;
+						const isActive = primaryFilter === opt;
 						return (
 							<button
 								key={opt}
-								onClick={() => setActiveFilter(opt)}
+								onClick={() => setPrimaryFilter(opt)}
 								aria-pressed={isActive}
 								className={`inline-flex flex-shrink-0 justify-center min-w-[110px] items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ${isActive ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-700 border border-gray-200 hover:shadow-sm'}`}
 							>
 								<span className={`inline-flex items-center justify-center w-7 h-7 rounded-full ${isActive ? 'bg-white text-blue-600' : 'bg-blue-50 text-blue-400'}`}>
-									{opt === 'Latest' ? 'L' : opt === 'Recent' ? 'R' : 'A'}
+									{opt === 'Latest' ? 'L' : 'R'}
 								</span>
 								<span>{opt}</span>
-								<span className={`ml-2 inline-flex items-center justify-center w-6 h-6 text-xs rounded-full ${isActive ? 'bg-white text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
-									{count}
-								</span>
+								{/* no numeric badge for primary filters */}
 							</button>
 						);
 					})}
@@ -282,13 +286,28 @@ export default function blogsPage() {
 
 				{/* Category filters (secondary) */}
 				<div className="flex items-center gap-3 overflow-x-auto whitespace-nowrap py-2 -mx-3 px-3">
+					{/** All categories chip */}
+					<button
+						key="all-categories"
+						onClick={() => setCategoryFilter(null)}
+						aria-pressed={!categoryFilter}
+						className={`inline-flex flex-shrink-0 items-center gap-2 px-3 py-1 rounded-full text-sm transition-all duration-150 ${!categoryFilter ? 'bg-gray-800 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:shadow-sm'}`}
+					>
+						<span className={`w-2 h-2 rounded-full ${!categoryFilter ? 'bg-white' : 'bg-blue-100'} inline-block`} />
+						<span className="truncate">All</span>
+						<span className={`ml-2 inline-flex items-center justify-center w-6 h-6 text-xs rounded-full ${!categoryFilter ? 'bg-white text-gray-800' : 'bg-gray-100 text-gray-600'}`}>
+							{blogs.length}
+						</span>
+					</button>
 					{categories.map(cat => {
-						const count = blogs.filter(p => normalizeCategories(p.category).includes(cat)).length;
-						const isActive = activeFilter === cat;
+						const normalized = normalizeCategories(cat);
+						const name = Array.isArray(normalized) ? normalized.join(', ') : String(normalized || 'Uncategorized');
+						const count = blogs.filter(b => normalizeCategories(b.category)?.includes(name)).length;
+						const isActive = categoryFilter === name;
 						return (
 							<button
 								key={cat}
-								onClick={() => setActiveFilter(cat)}
+								onClick={() => setCategoryFilter(isActive ? null : name)}
 								aria-pressed={isActive}
 								className={`inline-flex flex-shrink-0 items-center gap-2 px-3 py-1 rounded-full text-sm transition-all duration-150 ${isActive ? 'bg-gray-800 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:shadow-sm'}`}
 							>
