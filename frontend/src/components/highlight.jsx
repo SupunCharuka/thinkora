@@ -9,6 +9,8 @@ export default function Highlight() {
   const [visible, setVisible] = useState(false);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [limit, setLimit] = useState(4);
+  const base = process.env.NEXT_PUBLIC_API_URL || '';
 
   useEffect(() => {
     const el = ref.current;
@@ -32,16 +34,17 @@ export default function Highlight() {
 
   useEffect(() => {
     let mounted = true;
-    const base = process.env.NEXT_PUBLIC_API_URL || '';
+    setLoading(true);
 
     async function fetchHighlights() {
       try {
-        const res = await fetch(`${base}/api/v1/blogs?highlighted=true&limit=8`);
+        const res = await fetch(`${base}/api/v1/blogs?highlighted=true&limit=${limit}`);
         if (!res.ok) throw new Error('Failed to load highlights');
         const data = await res.json();
-        if (mounted) setItems(data || []);
+        if (mounted) setItems(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Failed to fetch highlights', err);
+        if (mounted) setItems([]);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -49,7 +52,7 @@ export default function Highlight() {
 
     fetchHighlights();
     return () => { mounted = false; };
-  }, []);
+  }, [limit]);
 
   const formatDate = (value) => {
     if (!value) return '';
@@ -57,6 +60,8 @@ export default function Highlight() {
     if (Number.isNaN(d.getTime())) return String(value);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
+
+  const hasMore = Array.isArray(items) && items.length >= limit && items.length > 0;
 
   return (
     <section
@@ -83,7 +88,7 @@ export default function Highlight() {
               <div key={idx} className="h-[420px] bg-gray-100 rounded-lg animate-pulse" />
             ))
           ) : (
-            (items || []).map((blog, idx) => (
+            (items || []).slice(0, limit).map((blog, idx) => (
               <article
                 key={blog._id || blog.slug || idx}
                 className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105"
@@ -122,19 +127,35 @@ export default function Highlight() {
       </div>
 
       <div className="mt-4 flex justify-center">
-        <Link
-          href="/trending"
-          aria-label="Show more trending blogs"
-          className="group inline-flex items-center gap-3 bg-[#0b1220] hover:bg-gradient-to-r hover:from-[#0b1220] hover:to-[#0f1724] text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
-        >
-          <span className="text-sm font-medium transition-colors duration-200">Show me more</span>
+        <div className="flex items-center gap-3">
+          {limit > 4 && (
+            <button
+              type="button"
+              onClick={() => setLimit((p) => Math.max(4, p - 4))}
+              disabled={loading}
+              aria-label="Show fewer highlights"
+              className="group inline-flex items-center gap-3 bg-white text-[#0b1220] px-4 py-2 rounded-full shadow-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
+            >
+              <span className="text-sm font-medium transition-colors duration-200">{loading ? 'Loading...' : 'Show less'}</span>
+            </button>
+          )}
 
-          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 transition-transform duration-200 transform group-hover:translate-x-1 group-hover:bg-white/10">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </span>
-        </Link>
+          <button
+            type="button"
+            onClick={() => setLimit((p) => p + 4)}
+            disabled={loading || !hasMore}
+            aria-label="Load more highlights"
+            className="group inline-flex items-center gap-3 bg-[#0b1220] hover:bg-gradient-to-r hover:from-[#0b1220] hover:to-[#0f1724] text-white px-4 py-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
+          >
+            <span className="text-sm font-medium transition-colors duration-200">{loading ? 'Loading...' : (hasMore ? 'Show more' : 'No more')}</span>
+
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 transition-transform duration-200 transform group-hover:translate-x-1 group-hover:bg-white/10">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </span>
+          </button>
+        </div>
       </div>
 
     </section>
