@@ -31,6 +31,19 @@ const formatDate = (value) => {
 	return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
+const parseDateValue = (v) => {
+	if (!v) return null;
+	const d = new Date(v);
+	return Number.isNaN(d.getTime()) ? null : d;
+};
+
+const isRecent = (date, days = 7) => {
+	if (!date) return false;
+	const now = Date.now();
+	const ms = days * 24 * 60 * 60 * 1000;
+	return (now - date.getTime()) <= ms;
+};
+
 
 function BlogCard({ blog }) {
 
@@ -125,7 +138,8 @@ export default function blogsPage() {
 	}, [query]);
 
 	const categories = Array.from(new Set(blogs.flatMap(p => normalizeCategories(p.category)))).sort();
-	const filterOptions = ['All blog', ...categories];
+	const filterOptions = ['All blog', 'Latest', 'Recent', ...categories];
+	const primaryFilters = ['All blog', 'Latest', 'Recent'];
 	const [activeFilter, setActiveFilter] = useState('All blog');
 
 	// reset visible count when filter or search changes
@@ -133,9 +147,20 @@ export default function blogsPage() {
 		setVisibleCount(STEP);
 	}, [debouncedQuery, activeFilter]);
 
-	// include all blogs so the grid shows the first blog as well; also apply search
-	const gridblogs = blogs.filter(p => {
-		if (activeFilter !== 'All blog' && !normalizeCategories(p.category).includes(activeFilter)) return false;
+	// include all blogs so the grid shows the first blog as well; also apply search and filters
+	let gridblogs = blogs.filter(p => {
+		// handle Recent filter
+		if (activeFilter === 'Recent') {
+			const d = parseDateValue(p.createdAt || p.date);
+			if (!d || !isRecent(d, 7)) return false;
+		}
+
+		// handle category filter (Latest and All blog skip category filtering)
+		if (activeFilter !== 'All blog' && activeFilter !== 'Latest' && activeFilter !== 'Recent') {
+			if (!normalizeCategories(p.category).includes(activeFilter)) return false;
+		}
+
+		// search
 		if (debouncedQuery) {
 			const q = debouncedQuery.toLowerCase();
 			const inTitle = (p.title || '').toLowerCase().includes(q);
@@ -145,6 +170,15 @@ export default function blogsPage() {
 		}
 		return true;
 	});
+
+	// if Latest selected, sort by date desc
+	if (activeFilter === 'Latest') {
+		gridblogs = [...gridblogs].sort((a, b) => {
+			const da = parseDateValue(a.createdAt || a.date) || new Date(0);
+			const db = parseDateValue(b.createdAt || b.date) || new Date(0);
+			return db - da;
+		});
+	}
 
 	// Pagination / page size
 	const STEP = 8;
@@ -215,22 +249,52 @@ export default function blogsPage() {
 				</div>
 			</div>
 
-			<div className="mb-4 flex items-center gap-4">
-			
-				<div className="flex flex-wrap items-center gap-3">
-					{filterOptions.map(opt => {
-						const count = opt === 'All blog' ? blogs.length : blogs.filter(p => normalizeCategories(p.category).includes(opt)).length;
+			<div className="mb-4">
+				{/* Primary filters: All / Latest / Recent */}
+				<div className="flex items-center gap-3 mb-3 overflow-x-auto whitespace-nowrap py-2 -mx-3 px-3">
+					{primaryFilters.map(opt => {
+						let count = 0;
+						if (opt === 'All blog') count = blogs.length;
+						else if (opt === 'Latest') count = blogs.length;
+						else if (opt === 'Recent') count = blogs.filter(b => {
+							const d = parseDateValue(b.createdAt || b.date);
+							return d && isRecent(d, 7);
+						}).length;
 						const isActive = activeFilter === opt;
 						return (
 							<button
 								key={opt}
 								onClick={() => setActiveFilter(opt)}
 								aria-pressed={isActive}
-								className={`group inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm transition-all duration-150 ${isActive ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:shadow-sm'}`}
+								className={`inline-flex flex-shrink-0 justify-center min-w-[110px] items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ${isActive ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-700 border border-gray-200 hover:shadow-sm'}`}
+							>
+								<span className={`inline-flex items-center justify-center w-7 h-7 rounded-full ${isActive ? 'bg-white text-blue-600' : 'bg-blue-50 text-blue-400'}`}>
+									{opt === 'Latest' ? 'L' : opt === 'Recent' ? 'R' : 'A'}
+								</span>
+								<span>{opt}</span>
+								<span className={`ml-2 inline-flex items-center justify-center w-6 h-6 text-xs rounded-full ${isActive ? 'bg-white text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
+									{count}
+								</span>
+							</button>
+						);
+					})}
+				</div>
+
+				{/* Category filters (secondary) */}
+				<div className="flex items-center gap-3 overflow-x-auto whitespace-nowrap py-2 -mx-3 px-3">
+					{categories.map(cat => {
+						const count = blogs.filter(p => normalizeCategories(p.category).includes(cat)).length;
+						const isActive = activeFilter === cat;
+						return (
+							<button
+								key={cat}
+								onClick={() => setActiveFilter(cat)}
+								aria-pressed={isActive}
+								className={`inline-flex flex-shrink-0 items-center gap-2 px-3 py-1 rounded-full text-sm transition-all duration-150 ${isActive ? 'bg-gray-800 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:shadow-sm'}`}
 							>
 								<span className={`w-2 h-2 rounded-full ${isActive ? 'bg-white' : 'bg-blue-100'} inline-block`} />
-								<span className="truncate">{opt}</span>
-								<span className={`ml-2 inline-flex items-center justify-center w-6 h-6 text-xs rounded-full ${isActive ? 'bg-white text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
+								<span className="truncate">{cat}</span>
+								<span className={`ml-2 inline-flex items-center justify-center w-6 h-6 text-xs rounded-full ${isActive ? 'bg-white text-gray-800' : 'bg-gray-100 text-gray-600'}`}>
 									{count}
 								</span>
 							</button>
