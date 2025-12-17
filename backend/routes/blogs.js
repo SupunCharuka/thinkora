@@ -11,6 +11,10 @@ import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Simple in-memory recent views cache to avoid counting repeated views
+// Keyed by `${blogId}:${userIdOrIp}` with timestamp value (ms since epoch)
+const recentViews = new Map();
+const VIEW_TTL_MS = parseInt(process.env.VIEW_TTL_MS || String(24 * 60 * 60 * 1000), 10); // default 24 hours
 // Multer setup for uploads
 // Resolve `uploads` directory relative to this file to avoid issues when cwd differs.
 const __filename = fileURLToPath(import.meta.url);
@@ -128,6 +132,58 @@ router.get('/:id', async (req, res) => {
   } catch (err) {
     console.error('Failed to get blog', err);
     return res.status(500).json({ message: 'Failed to load blog' });
+  }
+});
+
+// Public: increment view count for a blog by id or slug
+router.post('/:id/view', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = id.match(/^[0-9a-fA-F]{24}$/) ? { _id: id } : { slug: id };
+
+    const blog = await Blog.findOne(query).select('_id');
+    if (!blog) return res.status(404).json({ message: 'Blog not found' });
+
+    // Identify viewer: prefer authenticated user id, fallback to IP
+    let viewerId = null;
+    try {
+      let token = null;
+      const rawAuth = (req.headers.authorization || req.headers.Authorization || '').toString();
+      if (rawAuth) {
+        const parts = rawAuth.split(' ').filter(Boolean);
+        if (parts.length === 2 && /^Bearer$/i.test(parts[0])) token = parts[1];
+        else if (parts.length === 1) token = parts[0];
+      }
+      if (!token && req.cookies && typeof req.cookies.token === 'string') token = req.cookies.token;
+      if (token) {
+        const payload = jwt.verify(token, JWT_SECRET);
+        if (payload && payload.id) viewerId = String(payload.id);
+      }
+    } catch (e) {
+      // ignore token errors and treat as anonymous
+    }
+
+    const ip = (req.headers['x-forwarded-for'] || req.ip || req.connection && req.connection.remoteAddress || '').toString().split(',')[0].trim();
+    const identity = viewerId || ip || 'anon';
+
+    const key = `${String(blog._id)}:${identity}`;
+    const now = Date.now();
+    const last = recentViews.get(key) || 0;
+    if (now - last < VIEW_TTL_MS) {
+      // Return current views without incrementing
+      const current = await Blog.findById(blog._id).select('views');
+      return res.json({ views: current ? current.views : 0, counted: false });
+    }
+
+    // Atomically increment views
+    const updated = await Blog.findByIdAndUpdate(blog._id, { $inc: { views: 1 } }, { new: true }).select('views');
+    if (!updated) return res.status(404).json({ message: 'Blog not found' });
+
+    recentViews.set(key, now);
+    return res.json({ views: updated.views, counted: true });
+  } catch (err) {
+    console.error('Failed to increment views', err);
+    return res.status(500).json({ message: 'Failed to increment views' });
   }
 });
 

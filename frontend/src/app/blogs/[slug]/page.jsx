@@ -125,6 +125,31 @@ export default function blogPage({ params }) {
         }
         setBlog(data)
 
+        // increment view count (avoid duplicate counts from same browser)
+        try {
+          const idForView = data && (data._id || data.slug)
+          const VIEW_TTL = 24 * 60 * 60 * 1000 // 24 hours
+          if (idForView && typeof window !== 'undefined' && window.localStorage) {
+            const key = `viewed:${idForView}`
+            const prev = localStorage.getItem(key)
+            if (!prev || (Date.now() - parseInt(prev, 10) > VIEW_TTL)) {
+              fetch(`${base}/api/v1/blogs/${encodeURIComponent(idForView)}/view`, { method: 'POST' })
+                .then((r) => r.json())
+                .then((json) => {
+                  if (json && json.counted) {
+                    try { localStorage.setItem(key, String(Date.now())) } catch (e) {}
+                  }
+                  if (json && typeof json.views !== 'undefined') {
+                    setBlog((b) => (b ? { ...b, views: json.views } : b))
+                  }
+                })
+                .catch(() => {})
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+
         // Fetch a few recommended blogs
         try {
           const rec = await fetch(`${base}/api/v1/blogs?limit=3`)
@@ -236,7 +261,7 @@ export default function blogPage({ params }) {
 
                 <div className="text-sm text-slate-600">
                   <div className="font-semibold text-slate-800">By {blog.author && blog.author.name ? blog.author.name : 'Author'}</div>
-                  <div className="text-xs mt-0.5">{formatDate(blog.createdAt)} · {calcReadingTime(blog.content)}</div>
+                  <div className="text-xs mt-0.5">{formatDate(blog.createdAt)} · {calcReadingTime(blog.content)}{blog && typeof blog.views !== 'undefined' ? ` · ${blog.views} views` : ''}</div>
                 </div>
               </div>
 

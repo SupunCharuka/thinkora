@@ -380,6 +380,10 @@ export default function ViewBlogsPage() {
 
                                         <Column field="published" header="Visibility" body={visibilityTemplate} style={{ width: '120px' }} />
 
+                                        <Column field="views" header="Views" sortable style={{ width: '100px' }} body={(row) => (
+                                            <div className="text-sm text-gray-700">{typeof row.views === 'number' ? row.views : 0}</div>
+                                        )} />
+
                                         <Column header="Actions" body={actionTemplate} style={{ width: '140px' }} />
                                     </DataTable>
                                 </div>
