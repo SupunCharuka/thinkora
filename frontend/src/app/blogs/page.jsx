@@ -326,10 +326,16 @@ export default function blogsPage() {
 				ref={sectionRef}
 				className={`mt-6 transform transition-all duration-700 ease-out grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ${sectionVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
 			>
-				{shownBlogs.map((p, i) => {
-					const key = p?._id ?? p?.id ?? p?.slug ?? `${(p?.title || 'blog')}-${i}`;
-					return <BlogCard key={key} blog={p} />;
-				})}
+				{loading ? (
+					Array.from({ length: 8 }).map((_, i) => (
+						<div key={`skeleton-${i}`} className="rounded-lg overflow-hidden shadow-lg bg-slate-200 h-[420px]" />
+					))
+				) : (
+					shownBlogs.map((p, i) => {
+						const key = p?._id ?? p?.id ?? p?.slug ?? `${(p?.title || 'blog')}-${i}`;
+						return <BlogCard key={key} blog={p} />;
+					})
+				)}
 			</section>
 
 			{gridblogs.length === 0 && (

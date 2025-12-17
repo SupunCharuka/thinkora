@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import Hero from '@/components/hero';
 import Highlight from '@/components/highlight';
 import MostViewed from '@/components/mostViewed';
@@ -17,7 +16,23 @@ export default async function Home() {
 
   return (
     <div className="container mx-auto py-2">
-      <Hero blogs={heroBlogs} />
+      {heroBlogs && heroBlogs.length > 0 ? (
+        <Hero blogs={heroBlogs} />
+      ) : (
+        <div className="animate-pulse py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div className="col-span-1 lg:col-span-2 h-64 bg-slate-200 rounded-lg" />
+            <div className="hidden lg:block h-64 bg-slate-200 rounded-lg" />
+            <div className="hidden lg:block h-64 bg-slate-200 rounded-lg" />
+          </div>
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="h-36 bg-slate-200 rounded-md" />
+            <div className="h-36 bg-slate-200 rounded-md" />
+            <div className="h-36 bg-slate-200 rounded-md" />
+            <div className="h-36 bg-slate-200 rounded-md" />
+          </div>
+        </div>
+      )}
 
       <Highlight />
 
