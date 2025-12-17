@@ -215,7 +215,7 @@ export default function blogsPage() {
 	}, []);
 
 	return (
-		<main className="mx-auto">
+		<section className="mx-auto">
 
 			{/* Breadcrumb */}
 			<nav aria-label="Breadcrumb" className="mb-4">
@@ -381,6 +381,6 @@ export default function blogsPage() {
 					)}
 				</div>
 			</div>
-		</main>
+		</section>
 	);
 }

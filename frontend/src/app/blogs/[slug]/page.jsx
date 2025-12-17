@@ -165,30 +165,34 @@ export default function blogPage({ params }) {
   }, [])
 
   return (
-    <main
+    <section
       ref={mainRef}
-      className={`max-w-5xl mx-auto px-6 py-10 transform transition-all duration-700 ease-out ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-      }`}
+      className={`max-w-5xl mx-auto px-6 mb-6 transform transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+        }`}
     >
-      <blog>
-        <header className="mb-10">
+
+      {/* Breadcrumb */}
+      <nav aria-label="Breadcrumb" className="mb-4">
+        <ol className="flex items-center gap-2 text-sm text-gray-600">
+          <li>
+            <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2.5L2 8v9a.5.5 0 00.5.5H7a.5.5 0 00.5-.5V13a1 1 0 011-1h2a1 1 0 011 1v4.5a.5.5 0 00.5.5h4.5a.5.5 0 00.5-.5V8l-8-5.5z" /></svg>
+              <span>Home</span>
+            </Link>
+          </li>
+          <li className="text-gray-300">/</li>
+          <li className="font-semibold text-gray-900">Blogs</li>
+        </ol>
+      </nav>
+      <article>
+        <header className="mb-10 relative">
+
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div>
-              <nav className="text-sm text-slate-500" aria-label="Breadcrumb">
-                <ol className="flex items-center gap-2">
-                  <li>
-                    <Link href="/" className="hover:underline transition-colors duration-150 ease-in-out hover:text-slate-700">Home</Link>
-                  </li>
-                  <li className="text-slate-400">›</li>
-                  <li className="text-slate-700">Travel &amp; Culture</li>
-                </ol>
-              </nav>
+
 
               <div className="mt-3 flex items-center gap-3">
                 <Link href="#" className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-sm transition duration-150 ease-in-out hover:shadow-sm hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-200">Lifestyle</Link>
-                <Link href="#" className="inline-block px-3 py-1 rounded-full bg-violet-100 text-violet-800 text-sm transition duration-150 ease-in-out hover:shadow-sm hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-200">Culture</Link>
-                <Link href="#" className="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-sm transition duration-150 ease-in-out hover:shadow-sm hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200">Food</Link>
               </div>
             </div>
 
@@ -201,11 +205,7 @@ export default function blogPage({ params }) {
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img
-                src={blog.author.avatar}
-                alt={blog.author.name}
-                className="w-10 h-10 rounded-full object-cover"
-              />
+
               <div className="text-sm text-slate-600">
                 <div className="font-semibold text-slate-800">By {blog.author.name}</div>
                 <div className="text-xs mt-0.5">{blog.date} · {blog.readTime}</div>
@@ -216,17 +216,18 @@ export default function blogPage({ params }) {
               <span className="text-slate-500">Share this:</span>
               <div className="flex items-center gap-2">
                 <button aria-label="Share to Facebook" className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center transition transform duration-150 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879v-6.99H7.898v-2.89h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.462h-1.26c-1.243 0-1.63.772-1.63 1.562v1.875h2.773l-.444 2.89h-2.329v6.99C18.343 21.128 22 16.991 22 12z"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879v-6.99H7.898v-2.89h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.462h-1.26c-1.243 0-1.63.772-1.63 1.562v1.875h2.773l-.444 2.89h-2.329v6.99C18.343 21.128 22 16.991 22 12z" /></svg>
                 </button>
                 <button aria-label="Share to Twitter" className="w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center transition transform duration-150 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M22.162 5.656c-.63.28-1.305.47-2.016.556a3.518 3.518 0 0 0 1.547-1.942 7.01 7.01 0 0 1-2.228.85 3.502 3.502 0 0 0-5.966 3.195 9.939 9.939 0 0 1-7.22-3.66 3.5 3.5 0 0 0 1.083 4.674 3.48 3.48 0 0 1-1.587-.438v.044a3.503 3.503 0 0 0 2.807 3.434 3.488 3.488 0 0 1-.918.122 3.37 3.37 0 0 1-.66-.063 3.502 3.502 0 0 0 3.267 2.426A7.022 7.022 0 0 1 3 19.54a9.9 9.9 0 0 0 5.366 1.573c6.437 0 9.963-5.34 9.963-9.963v-.454A7.09 7.09 0 0 0 22.162 5.656z"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M22.162 5.656c-.63.28-1.305.47-2.016.556a3.518 3.518 0 0 0 1.547-1.942 7.01 7.01 0 0 1-2.228.85 3.502 3.502 0 0 0-5.966 3.195 9.939 9.939 0 0 1-7.22-3.66 3.5 3.5 0 0 0 1.083 4.674 3.48 3.48 0 0 1-1.587-.438v.044a3.503 3.503 0 0 0 2.807 3.434 3.488 3.488 0 0 1-.918.122 3.37 3.37 0 0 1-.66-.063 3.502 3.502 0 0 0 3.267 2.426A7.022 7.022 0 0 1 3 19.54a9.9 9.9 0 0 0 5.366 1.573c6.437 0 9.963-5.34 9.963-9.963v-.454A7.09 7.09 0 0 0 22.162 5.656z" /></svg>
                 </button>
                 <button aria-label="Share to Pinterest" className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center transition transform duration-150 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12.004 2C7.035 2 3 6.035 3 11.004c0 3.606 2.053 6.71 5.006 7.974-.07-.676-.133-1.715.028-2.45.147-.64.946-4.074.946-4.074s-.242-.486-.242-1.204c0-1.127.654-1.968 1.467-1.968.693 0 1.028.521 1.028 1.145 0 .699-.444 1.745-.674 2.716-.19.817.403 1.482 1.197 1.482 1.437 0 2.542-1.514 2.542-3.695 0-1.929-1.387-3.28-3.366-3.28-2.293 0-3.641 1.72-3.641 3.5 0 .693.266 1.436.6 1.842.066.08.075.151.056.231-.062.254-.201.817-.229.932-.036.146-.118.177-.274.107-1.02-.447-1.659-1.967-1.659-3.166 0-2.576 1.873-4.938 5.397-4.938 2.834 0 4.873 2.025 4.873 4.73 0 2.823-1.778 5.101-4.246 5.101-0.83 0-1.61-.431-1.876-.936l-.51 1.946c-.184.7-.68 1.577-1.016 2.109C9.9 21.657 10.94 22 12.004 22 16.973 22 21 17.965 21 13c0-4.966-4.027-11-8.996-11z"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12.004 2C7.035 2 3 6.035 3 11.004c0 3.606 2.053 6.71 5.006 7.974-.07-.676-.133-1.715.028-2.45.147-.64.946-4.074.946-4.074s-.242-.486-.242-1.204c0-1.127.654-1.968 1.467-1.968.693 0 1.028.521 1.028 1.145 0 .699-.444 1.745-.674 2.716-.19.817.403 1.482 1.197 1.482 1.437 0 2.542-1.514 2.542-3.695 0-1.929-1.387-3.28-3.366-3.28-2.293 0-3.641 1.72-3.641 3.5 0 .693.266 1.436.6 1.842.066.08.075.151.056.231-.062.254-.201.817-.229.932-.036.146-.118.177-.274.107-1.02-.447-1.659-1.967-1.659-3.166 0-2.576 1.873-4.938 5.397-4.938 2.834 0 4.873 2.025 4.873 4.73 0 2.823-1.778 5.101-4.246 5.101-0.83 0-1.61-.431-1.876-.936l-.51 1.946c-.184.7-.68 1.577-1.016 2.109C9.9 21.657 10.94 22 12.004 22 16.973 22 21 17.965 21 13c0-4.966-4.027-11-8.996-11z" /></svg>
                 </button>
               </div>
             </div>
           </div>
+
         </header>
 
         <figure className="mb-8">
@@ -260,7 +261,7 @@ export default function blogPage({ params }) {
             </blockquote>
           </figure>
         </div>
-        
+
         {/* Recommended for you */}
         <section className="mt-12">
           <h3 className="text-2xl font-bold mb-6">Recommended for you</h3>
@@ -270,10 +271,11 @@ export default function blogPage({ params }) {
               <Link
                 key={r.id}
                 href={r.href}
-                className="block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transform transition duration-200 ease-in-out hover:scale-105"
+                className="group relative block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transform transition duration-200 ease-in-out hover:scale-105"
               >
-                <div className="w-full h-40 bg-gray-200 overflow-hidden">
-                  <img src={r.image} alt={r.title} className="w-full h-full object-cover" />
+                <div className="w-full h-40 bg-gray-200 overflow-hidden relative">
+                  <img src={r.image} alt={r.title} className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <div className="p-4">
                   <span className="inline-block text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-800">{r.category}</span>
@@ -297,7 +299,7 @@ export default function blogPage({ params }) {
           <div className="mt-10">
             <h3 className="text-2xl font-bold mb-6">Leave a comment</h3>
 
-            <div className="p-4 md:p-6 bg-slate-50 rounded-lg">
+            <div className="p-4 md:p-6 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-lg border border-slate-100 shadow-sm">
               <form className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <input
@@ -337,14 +339,14 @@ export default function blogPage({ params }) {
                     className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-lg shadow-md transition transform duration-150 ease-in-out hover:opacity-95 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-800"
                   >
                     <span className="font-medium">Submit comment</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" /></svg>
                   </button>
                 </div>
               </form>
             </div>
           </div>
         </section>
-      </blog>
-    </main>
+      </article>
+    </section>
   )
 }
