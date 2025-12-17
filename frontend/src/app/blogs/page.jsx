@@ -139,7 +139,7 @@ export default function blogsPage() {
 
 	const categories = Array.from(new Set(blogs.flatMap(p => normalizeCategories(p.category)))).sort();
 	const filterOptions = ['Latest', 'Recent', ...categories];
-	const primaryFilters = ['Latest', 'Recent'];
+	const primaryFilters = ['Latest', 'Recent', 'Most viewed'];
 	const [primaryFilter, setPrimaryFilter] = useState(null);
 	const [categoryFilter, setCategoryFilter] = useState(null);
 
@@ -178,13 +178,15 @@ export default function blogsPage() {
 		return true;
 	});
 
-	// if Latest selected, sort by date desc
+	// Sorting based on primary filter
 	if (primaryFilter === 'Latest') {
 		gridblogs = [...gridblogs].sort((a, b) => {
 			const da = parseDateValue(a.createdAt || a.date) || new Date(0);
 			const db = parseDateValue(b.createdAt || b.date) || new Date(0);
 			return db - da;
 		});
+	} else if (primaryFilter === 'Most viewed') {
+		gridblogs = [...gridblogs].sort((a, b) => (b.views || 0) - (a.views || 0));
 	}
 
 	// Pagination / page size
@@ -266,6 +268,7 @@ export default function blogsPage() {
 							const d = parseDateValue(b.createdAt || b.date);
 							return d && isRecent(d, 7);
 						}).length;
+						else if (opt === 'Most viewed') count = blogs.length;
 						const isActive = primaryFilter === opt;
 						return (
 							<button
@@ -275,7 +278,7 @@ export default function blogsPage() {
 								className={`inline-flex flex-shrink-0 justify-center min-w-[110px] items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ${isActive ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-700 border border-gray-200 hover:shadow-sm'}`}
 							>
 								<span className={`inline-flex items-center justify-center w-7 h-7 rounded-full ${isActive ? 'bg-white text-blue-600' : 'bg-blue-50 text-blue-400'}`}>
-									{opt === 'Latest' ? 'L' : 'R'}
+									{opt === 'Latest' ? 'L' : (opt === 'Recent' ? 'R' : 'V')}
 								</span>
 								<span>{opt}</span>
 								{/* no numeric badge for primary filters */}

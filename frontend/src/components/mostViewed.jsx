@@ -89,7 +89,7 @@ export default function MostViewed() {
     return (
         <section
             ref={ref}
-            className={`mt-6 transform transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}
+            className={`transform transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}
                 `}
         >
 
@@ -147,7 +147,7 @@ export default function MostViewed() {
                                                 <span className="inline-block">{p.title}</span>
                                                 <span className="block h-[2px] bg-white transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mt-2" aria-hidden="true" />
                                             </h3>
-                                            <p className="text-sm text-white/90 mt-2 drop-shadow-sm opacity-95">{p.author || 'Unknown'} · {formatDate(p.createdAt)} · {p.views ? `${p.views} views` : ''}</p>
+                                            <p className="text-sm text-white/90 mt-2 drop-shadow-sm opacity-95">{formatDate(p.createdAt)}</p>
                                         </div>
 
                                         {p.highlighted && (
