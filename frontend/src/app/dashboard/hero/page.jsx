@@ -119,7 +119,43 @@ export default function HeroSelectorPage() {
         );
     };
 
-    if (checking) return <div className="min-h-screen flex items-center justify-center">Loading…</div>;
+    if (checking) {
+        return (
+            <div className="min-h-screen bg-gray-50">
+                <div className="flex">
+                    <aside className="w-64 hidden md:block p-6">
+                        <div className="space-y-4">
+                            <div className="h-6 bg-slate-200 rounded w-2/3 animate-pulse" />
+                            <div className="h-10 bg-slate-200 rounded animate-pulse" />
+                            <div className="h-10 bg-slate-200 rounded animate-pulse" />
+                            <div className="h-10 bg-slate-200 rounded animate-pulse" />
+                        </div>
+                    </aside>
+
+                    <main className="flex-1 p-6">
+                        <div className="max-w-6xl mx-auto">
+                            <div className="h-8 bg-slate-200 rounded w-1/3 mb-6 animate-pulse" />
+
+                            <div className="bg-white shadow rounded-md p-4">
+                                <div className="space-y-3">
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                        <div key={i} className="flex items-center gap-4 p-3">
+                                            <div className="w-20 h-12 bg-slate-200 rounded animate-pulse" />
+                                            <div className="flex-1">
+                                                <div className="h-4 bg-slate-200 rounded w-3/4 animate-pulse" />
+                                                <div className="h-3 bg-slate-200 rounded w-1/2 mt-2 animate-pulse" />
+                                            </div>
+                                            <div className="w-28 h-6 bg-slate-200 rounded animate-pulse" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900">
