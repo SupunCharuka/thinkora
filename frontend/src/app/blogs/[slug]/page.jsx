@@ -261,7 +261,7 @@ export default function blogPage({ params }) {
 
                 <div className="text-sm text-slate-600">
                   <div className="font-semibold text-slate-800">By {blog.author && blog.author.name ? blog.author.name : 'Author'}</div>
-                  <div className="text-xs mt-0.5">{formatDate(blog.createdAt)} · {calcReadingTime(blog.content)}{blog && typeof blog.views !== 'undefined' ? ` · ${blog.views} views` : ''}</div>
+                  <div className="text-xs mt-0.5">{formatDate(blog.createdAt)} · {calcReadingTime(blog.content)}</div>
                 </div>
               </div>
 

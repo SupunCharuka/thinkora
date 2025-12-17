@@ -62,7 +62,7 @@ router.get('/', async (req, res) => {
     // Hero blogs are sorted by heroRank ascending
     // Highlighted blogs are sorted by views descending
     // Default sorting is by createdAt descending (newest first)
-    const { hero, limit, highlighted } = req.query || {};
+    const { hero, limit, highlighted, mostViewed } = req.query || {};
     const q = { published: true };
 
     if (hero === 'true' || hero === '1') {
@@ -79,9 +79,12 @@ router.get('/', async (req, res) => {
     // Sorting:
     // - hero request: sort by `heroRank` ascending
     // - highlighted request: sort by `views` desc then createdAt
+    // - mostViewed request: sort by `views` desc then createdAt (no highlighted filter)
     // - default: newest first
     if (hero === 'true' || hero === '1') {
       query.sort({ heroRank: 1, createdAt: -1 });
+    } else if (mostViewed === 'true' || mostViewed === '1') {
+      query.sort({ views: -1, createdAt: -1 });
     } else if (highlighted === 'true' || highlighted === '1') {
       query.sort({ views: -1, createdAt: -1 });
     } else {
