@@ -48,7 +48,7 @@ export default function MostViewed() {
 
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold">Most viewed blogs</h2>
+                    <h2 className="text-2xl font-bold">Most viewed blogs</h2>
                     <p className="text-sm text-gray-500">Explore the most viewed blogs</p>
                 </div>
             </div>

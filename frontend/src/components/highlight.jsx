@@ -9,7 +9,8 @@ export default function Highlight() {
   const [visible, setVisible] = useState(false);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [limit, setLimit] = useState(4);
+  const STEP = 4;
+  const [visibleCount, setVisibleCount] = useState(4);
   const base = process.env.NEXT_PUBLIC_API_URL || '';
 
   useEffect(() => {
@@ -38,7 +39,8 @@ export default function Highlight() {
 
     async function fetchHighlights() {
       try {
-        const res = await fetch(`${base}/api/v1/blogs?highlighted=true&limit=${limit}`);
+        // fetch all highlighted items once, we'll paginate client-side
+        const res = await fetch(`${base}/api/v1/blogs?highlighted=true`);
         if (!res.ok) throw new Error('Failed to load highlights');
         const data = await res.json();
         if (mounted) setItems(Array.isArray(data) ? data : []);
@@ -52,7 +54,7 @@ export default function Highlight() {
 
     fetchHighlights();
     return () => { mounted = false; };
-  }, [limit]);
+  }, [base]);
 
   const formatDate = (value) => {
     if (!value) return '';
@@ -68,7 +70,7 @@ export default function Highlight() {
   };
 
 
-  const hasMore = Array.isArray(items) && items.length >= limit && items.length > 0;
+  const hasMore = Array.isArray(items) && items.length > (visibleCount || 0);
 
   return (
     <section
@@ -80,8 +82,8 @@ export default function Highlight() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
               <div>
-                <h3 className="text-3xl font-bold">Top Highlight</h3>
-                <p className="text-sm text-gray-500">Today's Most Popular Stories</p>
+                <h3 className="text-2xl font-bold">Top Highlight</h3>
+                <p className="text-sm text-gray-500">Hot right now</p>
               </div>
             </div>
           </div>
@@ -91,11 +93,12 @@ export default function Highlight() {
       <div className="mt-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {loading ? (
-            Array.from({ length: 4 }).map((_, idx) => (
+            Array.from({ length: STEP }).map((_, idx) => (
               <div key={idx} className="h-[420px] bg-gray-100 rounded-lg animate-pulse" />
             ))
           ) : (
-            (items || []).slice(0, limit).map((blog, idx) => (
+            // show up to visibleCount items; initially visibleCount is 0 so none are shown
+            (items || []).slice(0, visibleCount).map((blog, idx) => (
               <article
                 key={blog._id || blog.slug || idx}
                 className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105"
@@ -109,6 +112,7 @@ export default function Highlight() {
                       className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                     />
 
+
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-colors duration-300 group-hover:from-black/80" />
 
                     <div className="absolute top-4 left-4">
@@ -117,6 +121,14 @@ export default function Highlight() {
                         {blog.category && (typeof blog.category === 'object' ? blog.category.name : blog.category)}
                       </span>
                     </div>
+
+                    {(blog.highlighted) && (
+                      <div className="absolute top-4 right-4">
+                        <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="absolute bottom-6 left-4 right-4">
                       {/* Excerpt: show only on hover as a creative overlay (above the title) */}
@@ -143,35 +155,35 @@ export default function Highlight() {
         </div>
       </div>
 
-      <div className="mt-4 flex justify-center">
+      <div className="py-6 flex flex-col items-center gap-3">
         <div className="flex items-center gap-3">
-          {limit > 4 && (
+          {visibleCount > STEP && (
             <button
               type="button"
-              onClick={() => setLimit((p) => Math.max(4, p - 4))}
-              disabled={loading}
-              aria-label="Show fewer highlights"
-              className="group inline-flex items-center gap-3 bg-white text-[#0b1220] px-4 py-2 rounded-full shadow-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
+              onClick={() => setVisibleCount((p) => Math.max(STEP, p - STEP))}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-gray-800 shadow-sm hover:shadow-md"
             >
-              <span className="text-sm font-medium transition-colors duration-200">{loading ? 'Loading...' : 'Show less'}</span>
+              Show less
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => setLimit((p) => p + 4)}
-            disabled={loading || !hasMore}
-            aria-label="Load more highlights"
-            className="group inline-flex items-center gap-3 bg-[#0b1220] hover:bg-gradient-to-r hover:from-[#0b1220] hover:to-[#0f1724] text-white px-4 py-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
-          >
-            <span className="text-sm font-medium transition-colors duration-200">{loading ? 'Loading...' : (hasMore ? 'Load more' : 'No more')}</span>
+          {visibleCount < (items?.length || 0) && (
+            <button
+              type="button"
+              onClick={() => setVisibleCount((p) => Math.min(p + STEP, items.length))}
+              disabled={loading || !hasMore}
+              aria-label="Load more highlights"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0b1220] text-white shadow-lg hover:scale-105"
+            >
+              <span className="text-sm font-medium transition-colors duration-200">{loading ? 'Loading...' : (hasMore ? 'Load more' : 'No more')}</span>
 
-            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 transition-transform duration-200 transform group-hover:translate-x-1 group-hover:bg-white/10">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </span>
-          </button>
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 transition-transform duration-200 transform group-hover:translate-x-1 group-hover:bg-white/10">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </span>
+            </button>
+          )}
         </div>
       </div>
 

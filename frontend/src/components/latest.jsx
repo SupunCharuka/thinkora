@@ -4,20 +4,15 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
 export default function Latest() {
-    const sampleImages = [
-        'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1400&q=60',
-        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=60',
-        'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&w=1400&q=60',
-        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1400&q=60',
-    ];
 
     const ref = useRef(null);
     const [visible, setVisible] = useState(false);
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const base = process.env.NEXT_PUBLIC_API_URL || '';
-    const [limit, setLimit] = useState(4);
-    const step = 4;
+    const STEP = 4;
+    const [visibleCount, setVisibleCount] = useState(4);
+
 
     useEffect(() => {
         const el = ref.current;
@@ -44,7 +39,7 @@ export default function Latest() {
         setLoading(true);
         async function fetchLatest() {
             try {
-                const res = await fetch(`${base}/api/v1/blogs?limit=${limit}`);
+                const res = await fetch(`${base}/api/v1/blogs`);
                 if (!res.ok) throw new Error('Failed to fetch latest blogs');
                 const data = await res.json();
                 if (mounted) setItems(Array.isArray(data) ? data : []);
@@ -57,7 +52,7 @@ export default function Latest() {
         }
         fetchLatest();
         return () => { mounted = false; };
-    }, [base, limit]);
+    }, [base]);
 
     const formatDate = (v) => {
         if (!v) return '';
@@ -72,6 +67,8 @@ export default function Latest() {
         return s.length > n ? `${s.slice(0, n - 1).trim()}…` : s;
     };
 
+    const hasMore = Array.isArray(items) && items.length > (visibleCount || 0);
+
     return (
         <section
             ref={ref}
@@ -80,7 +77,7 @@ export default function Latest() {
         >
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold">Latest blogs</h2>
+                    <h2 className="text-2xl font-bold">Latest Blogs</h2>
                     <p className="text-sm text-gray-500">Latest published stories</p>
                 </div>
             </div>
@@ -88,13 +85,13 @@ export default function Latest() {
             <div className="mt-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {loading ? (
-                        Array.from({ length: limit }).map((_, idx) => (
+                        Array.from({ length: STEP }).map((_, idx) => (
                             <div key={idx} className="h-[420px] bg-gray-100 rounded-lg animate-pulse" />
                         ))
                     ) : (items.length === 0) ? (
                         <div className="col-span-full text-center text-gray-500 py-20">No recent blogs.</div>
                     ) : (
-                        (items || []).slice(0, limit).map((blog, idx) => {
+                        (items || []).slice(0, visibleCount).map((blog, idx) => {
                             const imgRaw = blog.image || blog.img || '';
                             let imgSrc = imgRaw;
                             if (imgSrc && !imgSrc.startsWith('http') && !imgSrc.startsWith('//')) {
@@ -127,9 +124,9 @@ export default function Latest() {
                                                 </span>
                                             </div>
 
-                                          
 
-                                                <div className="absolute bottom-6 left-4 right-4">
+
+                                            <div className="absolute bottom-6 left-4 right-4">
                                                 {/* Excerpt: show only on hover as a creative overlay (above the title) */}
                                                 {blog.excerpt ? (
                                                     <div className="mb-2">
@@ -166,35 +163,36 @@ export default function Latest() {
                     )}
                 </div>
 
-                <div className="mt-4 flex justify-center">
+                <div className="py-6 flex flex-col items-center gap-3">
                     <div className="flex items-center gap-3">
-                        {limit > step && (
+                        {visibleCount > STEP && (
                             <button
                                 type="button"
-                                onClick={() => setLimit((p) => Math.max(step, p - step))}
+                                onClick={() => setVisibleCount((p) => Math.max(STEP, p - STEP))}
                                 disabled={loading}
-                                aria-label="Show fewer blogs"
-                                className="group inline-flex items-center gap-3 bg-white text-[#0b1220] px-4 py-2 rounded-full shadow-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-gray-800 shadow-sm hover:shadow-md"
                             >
-                                <span className="text-sm font-medium transition-colors duration-200">{loading ? 'Loading...' : 'Show less'}</span>
+                                Show less
                             </button>
                         )}
 
-                        <button
-                            type="button"
-                            onClick={() => setLimit((p) => p + step)}
-                            disabled={loading || !(Array.isArray(items) && items.length >= limit)}
-                            aria-label="Load more blogs"
-                            className="group inline-flex items-center gap-3 bg-[#0b1220] hover:bg-gradient-to-r hover:from-[#0b1220] hover:to-[#0f1724] text-white px-4 py-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
-                        >
-                            <span className="text-sm font-medium transition-colors duration-200">{loading ? 'Loading...' : (Array.isArray(items) && items.length >= limit ? 'Load more' : 'No more')}</span>
+                        {visibleCount < (items?.length || 0) && (
+                            <button
+                                type="button"
+                                onClick={() => setVisibleCount((p) => Math.min(p + STEP, items.length))}
+                                disabled={loading || !hasMore}
+                                aria-label="Load more highlights"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0b1220] text-white shadow-lg hover:scale-105"
+                            >
+                                <span className="text-sm font-medium transition-colors duration-200">{loading ? 'Loading...' : (hasMore ? 'Load more' : 'No more')}</span>
 
-                            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 transition-transform duration-200 transform group-hover:translate-x-1 group-hover:bg-white/10">
-                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                    <path d="M9 18l6-6-6-6" />
-                                </svg>
-                            </span>
-                        </button>
+                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 transition-transform duration-200 transform group-hover:translate-x-1 group-hover:bg-white/10">
+                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                        <path d="M9 18l6-6-6-6" />
+                                    </svg>
+                                </span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
