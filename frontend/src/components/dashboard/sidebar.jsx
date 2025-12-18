@@ -97,24 +97,6 @@ export default function Sidebar({ mobile = false, onClose }) {
           })}
         </ul>
       </nav>
-
-      <div className="mt-6 pt-4 border-t border-white/5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/images/avatar-placeholder.png" alt="User avatar" className="w-9 h-9 rounded-full object-cover" />
-            <div>
-              <div className="text-sm font-medium">Admin</div>
-              <div className="text-xs text-gray-500">Content manager</div>
-            </div>
-          </div>
-          <button className="text-sm text-gray-400 hover:text-gray-200">Sign out</button>
-        </div>
-
-        <div className="mt-3 text-xs text-gray-500">
-          Quick tips
-          <div className="mt-2 text-xs">Use the cards to monitor traffic and content performance.</div>
-        </div>
-      </div>
     </div>
   );
 }

@@ -20,7 +20,7 @@ export default function StatCard({ title, value, variant = "indigo", small }) {
 
           <div className="opacity-80">
             <svg width="56" height="40" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 28 C12 12, 24 30, 36 18, 48 6, 54 22" stroke="rgba(255,255,255,0.9)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M2 28 C12 12 24 30 36 18 S48 6 54 22" stroke="rgba(255,255,255,0.9)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
         </div>
