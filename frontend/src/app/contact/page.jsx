@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import Link from 'next/link';
 
 export default function ContactPage() {
     const [name, setName] = useState('');
@@ -42,7 +43,20 @@ export default function ContactPage() {
     };
 
     return (
-        <main className="min-h-[70vh] py-20 ">
+        <main className="min-h-[70vh]">
+            {/* Breadcrumb */}
+            <nav aria-label="Breadcrumb" className="mb-4">
+                <ol className="flex items-center gap-2 text-sm text-gray-600">
+                    <li>
+                        <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2.5L2 8v9a.5.5 0 00.5.5H7a.5.5 0 00.5-.5V13a1 1 0 011-1h2a1 1 0 011 1v4.5a.5.5 0 00.5.5h4.5a.5.5 0 00.5-.5V8l-8-5.5z" /></svg>
+                            <span>Home</span>
+                        </Link>
+                    </li>
+                    <li className="text-gray-300">/</li>
+                    <li className="font-semibold text-gray-900">Contact</li>
+                </ol>
+            </nav>
             <section className="container mx-auto px-6 lg:px-8">
                 <div className="max-w-6xl mx-auto grid gap-10 lg:grid-cols-2 items-center">
                     <div className="space-y-6">
@@ -81,22 +95,22 @@ export default function ContactPage() {
                             <div className="flex gap-4">
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-slate-700">Full name</label>
-                                    <input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Your name" />
+                                    <input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black-500" placeholder="Your name" />
                                 </div>
                                 <div className="w-1/2">
                                     <label className="block text-sm font-medium text-slate-700">Email</label>
-                                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="you@company.com" />
+                                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black-500" placeholder="you@company.com" />
                                 </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-slate-700">Message</label>
-                                <textarea rows={6} value={message} onChange={(e) => setMessage(e.target.value)} className="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Tell us about your project..." />
+                                <textarea rows={6} value={message} onChange={(e) => setMessage(e.target.value)} className="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black-500" placeholder="Tell us about your project..." />
                             </div>
 
                             <div className="flex items-center justify-between">
                                 <div className="text-sm text-slate-500">{error ? <span className="text-red-600">{error}</span> : success ? <span className="text-green-600">{success}</span> : <span>We reply within 48 hours</span>}</div>
-                                <button type="submit" disabled={loading} className="inline-flex items-center gap-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 font-medium disabled:opacity-60">
+                                <button type="submit" disabled={loading} className="inline-flex items-center gap-2 rounded-full bg-black hover:bg-gray-900 text-white px-5 py-2 font-medium disabled:opacity-60">
                                     {loading ? 'Sending…' : 'Send message'}
                                 </button>
                             </div>
