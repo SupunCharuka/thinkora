@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { PORT, mongoDBURL, FRONTEND_URL } from './config.js';
 import authRoutes from './routes/auth.js';
+import contactRoutes from './routes/contact.js';
 import dashboardRoutes from './routes/dashboard.js';
 import dashboardBlogsRoutes from './routes/dashboardBlogs.js';
 import categoriesRoutes from './routes/categories.js';
@@ -33,6 +34,8 @@ app.use(cors({
 
 // Auth routes (versioned)
 app.use('/api/v1/auth', authRoutes);
+// Contact endpoint (public)
+app.use('/api/v1/contact', contactRoutes);
 
 // Dashboard (protected)
 app.use('/api/v1/dashboard', authMiddleware, dashboardRoutes);
