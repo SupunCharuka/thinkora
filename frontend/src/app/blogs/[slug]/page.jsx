@@ -75,7 +75,19 @@ export default function blogPage({ params }) {
     const dt = new Date(d)
     if (Number.isNaN(dt.getTime())) return String(d)
     return new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'long', day: 'numeric' }).format(dt)
-  }
+    }
+
+    const getPrimaryCategory = (b) => {
+      const c = b?.category;
+      if (!c) return 'Uncategorized';
+      if (Array.isArray(c)) {
+        const first = c[0];
+        return typeof first === 'string' ? first : (first?.name || String(first));
+      }
+      if (typeof c === 'string') return c;
+      if (typeof c === 'object') return c.name || String(c);
+      return String(c);
+    };
 
   useEffect(() => {
     if (!mainRef.current) return
@@ -245,7 +257,7 @@ export default function blogPage({ params }) {
 
 
                 <div className="mt-3 flex items-center gap-3">
-                  <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-sm transition duration-150 ease-in-out hover:shadow-sm hover:scale-105">Lifestyle</span>
+                  <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-sm transition duration-150 ease-in-out hover:shadow-sm hover:scale-105">{getPrimaryCategory(blog)}</span>
                 </div>
               </div>
 
@@ -331,7 +343,7 @@ export default function blogPage({ params }) {
                     <span className="inline-block text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-800">{r.category}</span>
                     <h4 className="mt-3 text-lg font-semibold text-slate-900">{r.title}</h4>
                     <p className="mt-2 text-sm text-slate-600">{r.excerpt}</p>
-                    <div className="mt-3 text-xs text-slate-500">{r.author} · {formatDate(blog.createdAt)}</div>
+                    <div className="mt-3 text-xs text-slate-500">{formatDate(blog.createdAt)}</div>
                   </div>
                 </Link>
               ))}
