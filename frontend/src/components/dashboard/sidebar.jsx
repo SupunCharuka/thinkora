@@ -46,6 +46,13 @@ function Icon({ name }) {
           <path d="M6 20a6 6 0 0112 0" strokeLinecap="round" />
         </svg>
       );
+    case "users":
+      return (
+        <svg {...props} viewBox="0 0 24 24" className="text-teal-400">
+          <path d="M17 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" strokeLinecap="round" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      );
     default:
       return null;
   }
@@ -59,6 +66,7 @@ export default function Sidebar({ mobile = false, onClose }) {
     { href: "/dashboard/categories", label: "Categories", icon: "categories" },
     { href: "/dashboard/create-blog", label: "Create blog", icon: "create" },
     { href: "/dashboard/blogs", label: "View blogs", icon: "blogs" },
+    { href: "/dashboard/users", label: "Users", icon: "users" },
     { href: "/dashboard/hero", label: "Hero selector", icon: "hero" },
     { href: "/dashboard/profile", label: "Profile", icon: "profile" },
   ];
