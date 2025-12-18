@@ -9,6 +9,7 @@ import dashboardRoutes from './routes/dashboard.js';
 import dashboardBlogsRoutes from './routes/dashboardBlogs.js';
 import categoriesRoutes from './routes/categories.js';
 import blogsRoutes from './routes/blogs.js';
+import usersRoutes from './routes/users.js';
 import authMiddleware from './middleware/auth.js';
 
 
@@ -37,6 +38,9 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/dashboard', authMiddleware, dashboardRoutes);
 // Dashboard: user's blogs (protected)
 app.use('/api/v1/dashboard/blogs', authMiddleware, dashboardBlogsRoutes);
+
+// Users: protected - return list of users (for admin/dashboard)
+app.use('/api/v1/users', authMiddleware, usersRoutes);
 
 // Categories: public list, protected create handled inside router
 app.use('/api/v1/categories', categoriesRoutes);
