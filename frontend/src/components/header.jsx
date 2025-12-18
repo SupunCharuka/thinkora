@@ -73,8 +73,8 @@ export default function Header() {
             {[
               { href: '/', label: 'Home' },
               { href: '/blogs', label: 'Blogs' },
-              { href: '/collections', label: 'Collections' },
-              { href: '/trending', label: 'Trending' },
+              { href: '/about', label: 'About' },
+              { href: '/contact', label: 'Contact' },
             ].map((item) => {
               const isActive = item.href === '/' ? pathname === '/' : pathname?.startsWith(item.href);
               return (
