@@ -160,9 +160,9 @@ export default function HeroSelectorPage() {
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900">
             <div className="flex">
-                <aside className="w-64 hidden md:block"><Sidebar /></aside>
+               
                 <main className="flex-1 p-6">
-                    <Topbar />
+                    
                     <Toast ref={toast} />
                     <div className="mt-6">
                         <h2 className="text-lg font-semibold mb-4">Hero Selector (pick up to 4)</h2>
