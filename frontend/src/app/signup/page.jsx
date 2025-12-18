@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import useDashboardAuth from '@/hooks/useDashboardAuth';
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -12,6 +13,11 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { data, loading: checking } = useDashboardAuth({ redirect: false });
+
+  useEffect(() => {
+    if (!checking && data) router.push('/dashboard');
+  }, [checking, data, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,6 +55,8 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
+
+  if (checking) return null;
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center py-6">

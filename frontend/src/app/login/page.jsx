@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import useDashboardAuth from '@/hooks/useDashboardAuth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -10,6 +11,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [error, setError] = useState("");
+  const { data, loading: checking } = useDashboardAuth({ redirect: false });
+
+  useEffect(() => {
+    if (!checking && data) {
+      router.push('/dashboard');
+    }
+  }, [checking, data, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,6 +61,8 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (checking) return null;
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center py-12">
