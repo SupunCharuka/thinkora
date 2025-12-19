@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
 import jwt from 'jsonwebtoken';
@@ -20,13 +21,34 @@ const VIEW_TTL_MS = parseInt(process.env.VIEW_TTL_MS || String(24 * 60 * 60 * 10
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // store blog images under uploads/blogs for clearer organization
-const uploadDir = path.join(__dirname, '..', 'uploads', 'blogs');
+let uploadDir = path.join(__dirname, '..', 'uploads', 'blogs');
 
-// Ensure upload directory exists
-try {
-  fs.mkdirSync(uploadDir, { recursive: true });
-} catch (err) {
-  console.error('Failed to create upload directory', uploadDir, err);
+// Ensure upload directory exists and is writable. If creating/writing under
+// the project bundle fails (common in serverless like AWS Lambda where
+// /var/task is read-only), fall back to the OS temp directory so uploads
+// won't crash the request. Note: temp storage is ephemeral — use S3
+// for durable production storage.
+const ensureDirWritable = (dir) => {
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    // check write permission by attempting access
+    fs.accessSync(dir, fs.constants.W_OK);
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+if (!ensureDirWritable(uploadDir)) {
+  const fallback = path.join(os.tmpdir(), 'uploads', 'blogs');
+  try {
+    fs.mkdirSync(fallback, { recursive: true });
+    uploadDir = fallback;
+    console.warn('Uploads directory not writable; falling back to temp dir:', uploadDir);
+  } catch (err) {
+    console.error('Failed to create fallback uploads directory', fallback, err);
+    // keep original uploadDir (multer will throw when attempting to write)
+  }
 }
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
