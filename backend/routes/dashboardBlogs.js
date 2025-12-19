@@ -148,7 +148,7 @@ router.patch('/:id/highlight', async (req, res) => {
   }
 });
 
-export default router;
+// export at end after all routes (including delete)
 
 // Delete a user's blog and remove uploaded image file
 router.delete('/:id', async (req, res) => {
@@ -197,3 +197,5 @@ router.delete('/:id', async (req, res) => {
     return res.status(500).json({ message: 'Failed to delete blog', error: err.message });
   }
 });
+
+  export default router;
