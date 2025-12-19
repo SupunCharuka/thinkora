@@ -1,16 +1,19 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import Sidebar from '@/components/dashboard/sidebar';
-import Topbar from '@/components/dashboard/topbar';
 import CreateBlogForm from '@/components/dashboard/createBlogForm';
 import useDashboardAuth from '@/hooks/useDashboardAuth';
-import { useSearchParams } from 'next/navigation';
 
 export default function CreateBlogPage() {
   const { loading } = useDashboardAuth();
-  const searchParams = useSearchParams();
   const [initial, setInitial] = useState(null);
-  const editParam = searchParams ? searchParams.get('edit') : null;
+  const [editParam, setEditParam] = useState(null);
+
+  // read the `edit` query param on the client to avoid needing a Suspense boundary
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sp = new URLSearchParams(window.location.search);
+    setEditParam(sp.get('edit'));
+  }, []);
 
   useEffect(() => {
     if (!editParam) {
