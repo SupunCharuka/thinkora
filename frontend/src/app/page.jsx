@@ -7,7 +7,7 @@ export default async function Home() {
   const base = process.env.NEXT_PUBLIC_API_URL || '';
   let heroBlogs = [];
   try {
-    const res = await fetch(`${base}/api/v1/blogs?hero=true&limit=4`, { cache: 'no-store' });
+    const res = await fetch(`${base}/api/v1/blogs?hero=true&limit=4`, { next: { revalidate: 60 } });
     if (res.ok) heroBlogs = await res.json();
   } catch (err) {
     // fail silently and render fallback
