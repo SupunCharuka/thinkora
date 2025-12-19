@@ -1,8 +1,8 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
 import { fileURLToPath } from 'url';
+import os from 'os';
 import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config.js';
@@ -17,38 +17,28 @@ const router = express.Router();
 const recentViews = new Map();
 const VIEW_TTL_MS = parseInt(process.env.VIEW_TTL_MS || String(24 * 60 * 60 * 1000), 10); // default 24 hours
 // Multer setup for uploads
-// Resolve `uploads` directory relative to this file to avoid issues when cwd differs.
+// Resolve `uploads` directory relative to this file and prefer a writable location
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// store blog images under uploads/blogs for clearer organization
-let uploadDir = path.join(__dirname, '..', 'uploads', 'blogs');
 
-// Ensure upload directory exists and is writable. If creating/writing under
-// the project bundle fails (common in serverless like AWS Lambda where
-// /var/task is read-only), fall back to the OS temp directory so uploads
-// won't crash the request. Note: temp storage is ephemeral — use S3
-// for durable production storage.
-const ensureDirWritable = (dir) => {
-  try {
-    fs.mkdirSync(dir, { recursive: true });
-    // check write permission by attempting access
-    fs.accessSync(dir, fs.constants.W_OK);
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
+// Default uploads location inside project
+const defaultUploadsDir = path.join(__dirname, '..', 'uploads');
+let baseUploadsDir = defaultUploadsDir;
+try {
+  fs.accessSync(defaultUploadsDir, fs.constants.W_OK);
+} catch (err) {
+  // fallback to OS temp (writable on serverless platforms like AWS Lambda)
+  baseUploadsDir = path.join(os.tmpdir(), 'uploads');
+}
 
-if (!ensureDirWritable(uploadDir)) {
-  const fallback = path.join(os.tmpdir(), 'uploads', 'blogs');
-  try {
-    fs.mkdirSync(fallback, { recursive: true });
-    uploadDir = fallback;
-    console.warn('Uploads directory not writable; falling back to temp dir:', uploadDir);
-  } catch (err) {
-    console.error('Failed to create fallback uploads directory', fallback, err);
-    // keep original uploadDir (multer will throw when attempting to write)
-  }
+// store blog images under <baseUploadsDir>/blogs
+const uploadDir = path.join(baseUploadsDir, 'blogs');
+
+// Ensure upload directory exists (create fallback dirs if needed)
+try {
+  fs.mkdirSync(uploadDir, { recursive: true });
+} catch (err) {
+  console.error('Failed to create upload directory', uploadDir, err);
 }
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),

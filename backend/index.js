@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import path from 'path';
+import fs from 'fs';
+import os from 'os';
 import { fileURLToPath } from 'url';
 import { PORT, mongoDBURL, FRONTEND_URL } from './config.js';
 import authRoutes from './routes/auth.js';
@@ -18,10 +20,21 @@ const app = express();
 
 app.use(express.json());
 
-// Serve uploaded files from /uploads
+// Serve uploaded files from /uploads. Use a writable directory fallback (os.tmpdir())
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+let uploadsRoot = path.join(__dirname, 'uploads');
+try {
+  fs.accessSync(uploadsRoot, fs.constants.W_OK);
+} catch (err) {
+  uploadsRoot = path.join(os.tmpdir(), 'uploads');
+  try {
+    fs.mkdirSync(uploadsRoot, { recursive: true });
+  } catch (e) {
+    console.error('Failed to create fallback uploads directory', uploadsRoot, e);
+  }
+}
+app.use('/uploads', express.static(uploadsRoot));
 
 // CORS configuration
 app.use(cors({
