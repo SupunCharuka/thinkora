@@ -4,7 +4,12 @@ import MostViewed from '@/components/mostViewed';
 import Latest from '@/components/latest';
 
 export default async function Home() {
-  const base = process.env.NEXT_PUBLIC_API_URL || '';
+  const envBase = process.env.NEXT_PUBLIC_API_URL || '';
+  const isServer = typeof window === 'undefined';
+  // On the server, Node fetch requires an absolute URL. If no API URL is provided
+  // (e.g. dev missing env), fall back to the frontend origin so we can call the
+  // internal Next.js API route (which proxies to the backend).
+  const base = envBase || (isServer ? `http://localhost:3000` : '');
   let heroBlogs = [];
   try {
     const res = await fetch(`${base}/api/v1/blogs?hero=true&limit=4`, { next: { revalidate: 60 } });
