@@ -5,13 +5,45 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Hero({ blogs = [], autoplay = true, interval = 5000, showArrows = false, animation = 'fade', animationDuration = 600 }) {
-  const slides = blogs.length ? blogs : [];
+  const [localBlogs, setLocalBlogs] = useState(blogs && blogs.length ? blogs : []);
+  const [loading, setLoading] = useState(!(blogs && blogs.length));
+  const slides = localBlogs.length ? localBlogs : [];
   const [index, setIndex] = useState(0);
   const [contentVisible, setContentVisible] = useState(true);
   const autoplayRef = useRef(null);
   const isPaused = useRef(false);
 
   const visibleSlides = slides.slice(0, 4);
+
+  useEffect(() => {
+    if (blogs && blogs.length) {
+      setLocalBlogs(blogs);
+      setLoading(false);
+      return;
+    }
+
+    let canceled = false;
+    const base = process.env.NEXT_PUBLIC_API_URL;
+
+    (async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${base}/api/v1/blogs?hero=true&limit=4`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!canceled) setLocalBlogs(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch hero blogs', err);
+      } finally {
+        if (!canceled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      canceled = true;
+    };
+  }, [blogs]);
 
   // ensure each visible slide has a stable image and thumbnail URL
   const slidesWithImages = visibleSlides.map((s) => {
@@ -57,15 +89,34 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
     return () => clearInterval(autoplayRef.current);
   }, [visibleSlides.length, autoplay, interval]);
 
-
-  const current = slidesWithImages[index] || {};
-
   // animate content when index changes: briefly reset visibility then show
   useEffect(() => {
     setContentVisible(false);
     const t = setTimeout(() => setContentVisible(true), 30);
     return () => clearTimeout(t);
   }, [index]);
+
+
+  const current = slidesWithImages[index] || {};
+
+  if (loading && slides.length === 0) {
+    return (
+      <div className="animate-pulse py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <div className="col-span-1 lg:col-span-2 h-64 bg-slate-200 rounded-lg" />
+          <div className="hidden lg:block h-64 bg-slate-200 rounded-lg" />
+          <div className="hidden lg:block h-64 bg-slate-200 rounded-lg" />
+        </div>
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="h-36 bg-slate-200 rounded-md" />
+          <div className="h-36 bg-slate-200 rounded-md" />
+          <div className="h-36 bg-slate-200 rounded-md" />
+          <div className="h-36 bg-slate-200 rounded-md" />
+        </div>
+      </div>
+    );
+  }
+
 
   const contentStyle = {
     transition: `opacity ${animationDuration}ms ease, transform ${animationDuration}ms ease`,
