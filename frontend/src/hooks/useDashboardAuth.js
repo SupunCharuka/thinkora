@@ -15,10 +15,15 @@ export default function useDashboardAuth(options = {}) {
       setLoading(true);
       setError(null);
       try {
+        // Attach Authorization header from localStorage when present (client-side)
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        const headers = { Accept: 'application/json' };
+        if (token) headers.Authorization = `Bearer ${token}`;
+
         const res = await fetch('/api/v1/dashboard', {
           method: 'GET',
           credentials: 'include',
-          headers: { Accept: 'application/json' },
+          headers,
           signal,
         });
 
