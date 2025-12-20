@@ -23,6 +23,14 @@ export default function useDashboardAuth(options = {}) {
         });
 
         if (res.status === 401 || res.status === 403) {
+          let json = null;
+          try {
+            json = await res.json();
+          } catch (e) {
+            // ignore parse errors
+          }
+          const msg = json?.message || 'Authentication required';
+          setError(msg);
           if (redirect) router.push('/login');
           return;
         }
