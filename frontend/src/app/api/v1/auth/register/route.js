@@ -22,7 +22,7 @@ export async function POST(request) {
     const token = data.token;
     const maxAge = 7 * 24 * 60 * 60; // 7 days
 
-    const response = NextResponse.json({ user: data.user }, { status: 201 });
+    const response = NextResponse.json({ user: data.user, token }, { status: 201 });
     response.cookies.set('token', token, { httpOnly: true, path: '/', sameSite: 'lax', maxAge });
 
     return response;
