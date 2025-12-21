@@ -33,7 +33,10 @@ export default function ViewBlogsPage() {
         setLoadingBlogs(true);
         setError(null);
         try {
-            const res = await fetch('/api/v1/dashboard/blogs', { credentials: 'include' });
+            const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+            const headers = {};
+            if (token) headers.Authorization = `Bearer ${token}`;
+            const res = await fetch('/api/v1/dashboard/blogs', { credentials: 'include', headers });
             if (!res.ok) throw new Error(`Failed to load blogs (${res.status})`);
             const all = await res.json();
             if (signal && signal.aborted) return;
@@ -154,10 +157,13 @@ export default function ViewBlogsPage() {
                     accept: async () => {
                         try {
                             const urlId = encodeURIComponent(String(id));
+                            const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+                            const headers = { 'Content-Type': 'application/json' };
+                            if (token) headers.Authorization = `Bearer ${token}`;
                             const res = await fetch(`/api/v1/dashboard/blogs/${urlId}/publish`, {
                                 method: 'PATCH',
                                 credentials: 'include',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers,
                                 body: JSON.stringify({ published: !row.published, id }),
                             });
                             if (!res.ok) {
@@ -186,10 +192,13 @@ export default function ViewBlogsPage() {
                     accept: async () => {
                         try {
                             const urlId = encodeURIComponent(String(id));
+                            const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+                            const headers = { 'Content-Type': 'application/json' };
+                            if (token) headers.Authorization = `Bearer ${token}`;
                             const res = await fetch(`/api/v1/dashboard/blogs/${urlId}`, {
                                 method: 'DELETE',
                                 credentials: 'include',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers,
                                 body: JSON.stringify({ id }),
                             });
                             if (!res.ok) {
@@ -211,10 +220,13 @@ export default function ViewBlogsPage() {
                 if (!id || String(id) === 'undefined') { console.error('Invalid id for highlight', id); return; }
                 try {
                     const urlId = encodeURIComponent(String(id));
+                    const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (token) headers.Authorization = `Bearer ${token}`;
                     const res = await fetch(`/api/v1/dashboard/blogs/${urlId}/highlight`, {
                         method: 'PATCH',
                         credentials: 'include',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers,
                         body: JSON.stringify({ highlighted: !row.highlighted }),
                     });
                     if (!res.ok) {
