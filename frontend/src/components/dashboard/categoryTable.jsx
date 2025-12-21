@@ -34,7 +34,10 @@ export default function CategoryTable({ refreshKey }) {
     async function doDelete(id) {
         try {
             setDeletingId(id);
-            const res = await fetch(`/api/v1/categories/${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'same-origin' });
+            const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+            const headers = {};
+            if (token) headers.Authorization = `Bearer ${token}`;
+            const res = await fetch(`/api/v1/categories/${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'include', headers });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
                 setMessage({ type: 'error', text: data.message || 'Failed to delete' });

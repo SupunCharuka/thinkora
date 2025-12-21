@@ -33,7 +33,8 @@ export default function Topbar({ onOpenSidebar, greeting: propGreeting, subtitle
     (async () => {
       try {
         // Call our frontend logout proxy which clears the HttpOnly token cookie
-        await fetch('/api/v1/auth/logout', { method: 'POST' });
+        const token = (typeof window !== 'undefined' && localStorage.getItem('token')) || null;
+        await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include', headers: token ? { Authorization: `Bearer ${token}` } : {} });
       } catch (e) {
         // ignore network errors
       }

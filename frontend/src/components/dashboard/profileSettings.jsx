@@ -24,7 +24,10 @@ export default function ProfileSettings() {
       setLoading(true);
       setStatus(null);
       try {
-        const res = await fetch('/api/v1/auth/profile');
+        const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+        const headers = {};
+        if (token) headers.Authorization = `Bearer ${token}`;
+        const res = await fetch('/api/v1/auth/profile', { credentials: 'include', headers });
         if (res.ok) {
           const data = await res.json();
           const u = data.user || data;
@@ -80,9 +83,13 @@ export default function ProfileSettings() {
     setSaving(true);
     setStatus('Saving...');
     try {
+      const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
       const res = await fetch('/api/v1/auth/profile', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers,
         body: JSON.stringify({ name: name.trim(), email: email.trim(), bio }),
       });
 
@@ -140,9 +147,13 @@ export default function ProfileSettings() {
 
     setPwSaving(true);
     try {
+      const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
       const res = await fetch('/api/v1/auth/change-password', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers,
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await res.json();
