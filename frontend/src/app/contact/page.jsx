@@ -65,16 +65,7 @@ export default function ContactPage() {
                         <p className="text-slate-600 max-w-xl">Have a question, partnership idea, or feedback? Drop us a message and our team will get back to you within 48 hours.</p>
 
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="p-4 bg-white rounded-2xl shadow flex items-start gap-4">
-                                <svg className="w-6 h-6 text-indigo-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M2 12C2 7.58172 5.58172 4 10 4H14C18.4183 4 22 7.58172 22 12V13C22 17.4183 18.4183 21 14 21H10C5.58172 21 2 17.4183 2 13V12Z" fill="currentColor" opacity="0.08" />
-                                    <path d="M8 9H16M8 13H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                                <div>
-                                    <div className="font-semibold">General inquiries</div>
-                                    <div className="text-sm text-slate-500">hello@yourblog.com</div>
-                                </div>
-                            </div>
+                           
 
                             <div className="p-4 bg-white rounded-2xl shadow flex items-start gap-4">
                                 <svg className="w-6 h-6 text-indigo-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -83,7 +74,7 @@ export default function ContactPage() {
                                 </svg>
                                 <div>
                                     <div className="font-semibold">Support</div>
-                                    <div className="text-sm text-slate-500">support@yourblog.com</div>
+                                    <div className="text-sm text-slate-500">supuncharuka.dev@gmail.com</div>
                                 </div>
                             </div>
                         </div>
