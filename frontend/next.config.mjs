@@ -1,44 +1,44 @@
 /** @type {import('next').NextConfig} */
-// Build image host configuration including the API host if configured.
-const defaultDomains = ['thinkora.me', 'localhost', '127.0.0.1'];
-const defaultRemote = [
-  { protocol: 'https', hostname: 'thinkora.me', pathname: '/uploads/**' },
-];
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-const domains = [...defaultDomains];
-const remotePatterns = [...defaultRemote];
-
-if (apiUrl) {
-  try {
-    const u = new URL(apiUrl);
-    // add hostname to allowed domains
-    if (!domains.includes(u.hostname)) domains.push(u.hostname);
-    // allow fetching uploads from the API host
-    remotePatterns.push({ protocol: u.protocol.replace(':', ''), hostname: u.hostname, port: u.port || undefined, pathname: '/uploads/**' });
-  } catch (e) {
-    // ignore invalid NEXT_PUBLIC_API_URL
-    console.warn('Invalid NEXT_PUBLIC_API_URL in next.config.mjs', e && e.message);
-  }
-}
-
 const nextConfig = {
   images: {
-    domains,
-    remotePatterns,
+    // Allow Next Image Optimization to fetch images from the local API server
+    // running on http://localhost:5000 (e.g. /uploads/blogs/...)
+    // and from the production domain thinkora.me
+    // Adjust the remotePatterns as needed for your use case
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '5000',
+        pathname: '/uploads/**'
+      }
+      ,
+      // Allow fetching images from your production domain
+      {
+        protocol: 'https',
+        hostname: 'thinkora.me',
+        port: '',
+        pathname: '/uploads/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.thinkora.me',
+        port: '',
+        pathname: '/uploads/**'
+      }
+    ]
   },
 
-  // Rewrite /uploads/* to the API uploads endpoint if configured
-  // This allows Next.js Image component to work with uploaded images from the backend
-  // e.g. /uploads/image.jpg -> https://api.example.com/uploads/image.jpg
+  // Rewrite requests to /uploads/* to the local API server
+  // This allows serving images directly from the API server during development
   async rewrites() {
     return [
       {
         source: '/uploads/:path*',
-        destination: apiUrl ? `${apiUrl.replace(/\/$/, '')}/uploads/:path*` : '/uploads/:path*',
-      },
+        destination: 'http://localhost:5000/uploads/:path*'
+      }
     ];
-  },
+  }
 };
 
 export default nextConfig;
