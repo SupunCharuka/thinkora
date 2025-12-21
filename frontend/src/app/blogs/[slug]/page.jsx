@@ -1,7 +1,6 @@
 "use client"
 import React, { use, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import Head from 'next/head'
 import Image from 'next/image'
 import DOMPurify from 'dompurify'
 
@@ -240,15 +239,10 @@ export default function blogPage({ params }) {
       ) : error ? (
         <div className="py-20 text-center text-red-600">{error}</div>
       ) : (
-        <article>
-          <Head>
-            <title>{blog.title}</title>
-            <meta name="description" content={blog.excerpt || ''} />
-            <meta property="og:title" content={blog.title} />
-            <meta property="og:description" content={blog.excerpt || ''} />
-            {blog.image && <meta property="og:image" content={blog.image.startsWith('/') ? `${process.env.NEXT_PUBLIC_API_URL}${blog.image}` : blog.image} />}
-            <link rel="canonical" href={`${typeof window !== 'undefined' ? window.location.href : ''}`} />
-          </Head>
+        <article itemScope itemType="https://schema.org/Article">
+          {blog?.createdAt && <meta itemProp="datePublished" content={blog.createdAt} />}
+          {blog?.updatedAt && <meta itemProp="dateModified" content={blog.updatedAt} />}
+          <meta itemProp="mainEntityOfPage" content={`https://thinkora.me/blogs/${slug}`} />
 
           <header className="mb-10 relative">
 
@@ -264,7 +258,7 @@ export default function blogPage({ params }) {
               <div className="mt-3 sm:mt-0 text-sm text-slate-500">&nbsp;</div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-6">
+            <h1 itemProp="headline" className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-6">
               {blog.title}
             </h1>
 
@@ -272,8 +266,10 @@ export default function blogPage({ params }) {
               <div className="flex items-center gap-4">
 
                 <div className="text-sm text-slate-600">
-                  <div className="font-semibold text-slate-800">By {blog.author && blog.author.name ? blog.author.name : 'Author'}</div>
-                  <div className="text-xs mt-0.5">{formatDate(blog.createdAt)} · {calcReadingTime(blog.content)}</div>
+                  <div itemProp="author" itemScope itemType="https://schema.org/Person">
+                    <div className="font-semibold text-slate-800" itemProp="name">By {blog.author && blog.author.name ? blog.author.name : 'Author'}</div>
+                  </div>
+                  <div className="text-xs mt-0.5"><time itemProp="datePublished" dateTime={blog.createdAt}>{formatDate(blog.createdAt)}</time> · <span itemProp="timeRequired">{calcReadingTime(blog.content)}</span></div>
                 </div>
               </div>
 
