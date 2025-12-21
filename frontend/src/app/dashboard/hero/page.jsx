@@ -108,8 +108,8 @@ export default function HeroSelectorPage() {
         } else if (/^https?:\/\//i.test(row.image)) {
             imageSrc = row.image;
         } else if (row.image.startsWith('/')) {
-            // same-origin absolute path -> will be proxied by Next dev server
-            imageSrc = row.image;
+            // same-origin absolute path -> prefer API host absolute URL when configured
+            imageSrc = envBase ? `${envBase}${row.image}` : row.image;
         } else if (envBase) {
             imageSrc = `${envBase}/${row.image}`;
         } else {

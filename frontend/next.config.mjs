@@ -1,10 +1,8 @@
 /** @type {import('next').NextConfig} */
 // Build image host configuration including the API host if configured.
-const defaultDomains = ['images.unsplash.com', 'i.pravatar.cc', 'picsum.photos', 'localhost', '127.0.0.1'];
+const defaultDomains = ['thinkora.me', 'localhost', '127.0.0.1'];
 const defaultRemote = [
-  { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
-  { protocol: 'https', hostname: 'i.pravatar.cc', pathname: '/**' },
-  { protocol: 'https', hostname: 'picsum.photos', pathname: '/**' },
+  { protocol: 'https', hostname: 'thinkora.me', pathname: '/uploads/**' },
 ];
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -29,7 +27,7 @@ const nextConfig = {
     domains,
     remotePatterns,
   },
-  
+
   // Rewrite /uploads/* to the API uploads endpoint if configured
   // This allows Next.js Image component to work with uploaded images from the backend
   // e.g. /uploads/image.jpg -> https://api.example.com/uploads/image.jpg
