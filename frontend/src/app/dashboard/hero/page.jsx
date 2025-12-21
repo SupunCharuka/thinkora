@@ -30,7 +30,10 @@ export default function HeroSelectorPage() {
     const fetchBlogs = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/v1/dashboard/blogs', { credentials: 'include' });
+            const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+            const headers = {};
+            if (token) headers.Authorization = `Bearer ${token}`;
+            const res = await fetch('/api/v1/dashboard/blogs', { credentials: 'include', headers });
             if (!res.ok) throw new Error('Failed to load blogs');
             const data = await res.json();
             // only show public (published) blogs in hero selector
@@ -61,10 +64,13 @@ export default function HeroSelectorPage() {
     const assignRank = async (row, rank) => {
         try {
             const id = encodeURIComponent(row._id || row.id || row.slug);
+            const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers.Authorization = `Bearer ${token}`;
             const res = await fetch(`/api/v1/dashboard/blogs/${id}/hero`, {
                 method: 'PATCH',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({ heroRank: rank }),
             });
             if (!res.ok) {
