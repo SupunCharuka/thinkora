@@ -50,10 +50,11 @@ export default function CreateCategoryForm({ onCreated, category, onUpdated, sho
       if (category && (category._id || category.id)) {
         // Update existing
         const id = category._id || category.id;
+        const authToken = (typeof window !== 'undefined' && localStorage.getItem('token')) || null;
         const res = await fetch(`/api/v1/categories/${encodeURIComponent(id)}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'same-origin',
+          headers: Object.assign({ 'Content-Type': 'application/json' }, authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          credentials: 'include',
           body: JSON.stringify({ name: name.trim(), slug: slug.trim(), description: description.trim() }),
         });
         const data = await res.json();
@@ -74,10 +75,11 @@ export default function CreateCategoryForm({ onCreated, category, onUpdated, sho
         }
       } else {
         // Create new
+        const authToken = (typeof window !== 'undefined' && localStorage.getItem('token')) || null;
         const res = await fetch('/api/v1/categories', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'same-origin',
+          headers: Object.assign({ 'Content-Type': 'application/json' }, authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          credentials: 'include',
           body: JSON.stringify({ name: name.trim(), slug: slug.trim(), description: description.trim() }),
         });
         const data = await res.json();
