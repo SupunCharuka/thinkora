@@ -4,15 +4,18 @@ export async function GET(request) {
   try {
     const base = process.env.NEXT_PUBLIC_API_URL;
 
-    // forward cookies from the incoming request
+    // forward cookies and Authorization header from the incoming request
     const cookie = request.headers.get('cookie') || '';
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization') || '';
 
-    // Extract token from cookie string (token=...)
-    const match = cookie.match(/(?:^|; )token=([^;]+)/);
-    const token = match ? match[1] : null;
-
+    // prefer an explicit Authorization header, fallback to cookie token
     const headers = { 'Content-Type': 'application/json' };
-    if (token) headers.Authorization = `Bearer ${token}`;
+    if (authHeader) headers.Authorization = authHeader;
+    else {
+      const match = cookie.match(/(?:^|; )token=([^;]+)/);
+      const token = match ? match[1] : null;
+      if (token) headers.Authorization = `Bearer ${token}`;
+    }
 
     const res = await fetch(`${base}/api/v1/dashboard/blogs`, {
       method: 'GET',

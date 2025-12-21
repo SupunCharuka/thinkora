@@ -5,14 +5,17 @@ export async function DELETE(request, { params }) {
     const base = process.env.NEXT_PUBLIC_API_URL;
     const id = params.id;
 
-    // forward cookies from the incoming request
+    // forward cookies and Authorization header from the incoming request
     const cookie = request.headers.get('cookie') || '';
-    const tokenMatch = cookie.match(/(?:^|; )token=([^;]+)/);
-    const token = tokenMatch ? tokenMatch[1] : null;
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization') || '';
 
-    const headers = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
-    headers['Content-Type'] = 'application/json';
+    const headers = { 'Content-Type': 'application/json' };
+    if (authHeader) headers.Authorization = authHeader;
+    else {
+      const tokenMatch = cookie.match(/(?:^|; )token=([^;]+)/);
+      const token = tokenMatch ? tokenMatch[1] : null;
+      if (token) headers.Authorization = `Bearer ${token}`;
+    }
 
     // read body and forward if present (allows fallback id)
     let body = null;
