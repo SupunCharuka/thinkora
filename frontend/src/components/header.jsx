@@ -54,7 +54,7 @@ export default function Header() {
     };
   }, [pathname]);
 
- 
+
 
   return (
     <header className={`py-6 transition-all duration-300 ${scrolled ? 'sticky top-0 z-40 py-2' : ''}`}>
@@ -63,7 +63,7 @@ export default function Header() {
           {/* Left: Logo (creative) */}
           <Link href="/" className="inline-flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-[#E07A4D] via-[#F2C57C] to-[#2E8F56] bg-clip-text text-transparent">BLOG</span>
+              <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-[#E07A4D] via-[#F2C57C] to-[#2E8F56] bg-clip-text text-transparent">THINKORA</span>
               <span className="text-xs text-gray-400 ml-1">— thoughts</span>
             </div>
           </Link>
@@ -107,7 +107,7 @@ export default function Header() {
               )}
             </div>
 
-           
+
 
             <button
               aria-label="Open menu"

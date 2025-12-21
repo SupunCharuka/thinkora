@@ -21,7 +21,7 @@ export default function Footer() {
   return (
     <footer className="bg-gray-100 text-gray-700">
       <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between text-sm text-gray-500">
-        <div>© {year} <span className="font-semibold text-gray-700">BLOG</span>. All Rights Reserved</div>
+        <div>© {year} <span className="font-semibold text-gray-700">THINKORA</span>. All Rights Reserved</div>
         <div className="flex items-center gap-6 mt-4 md:mt-0">
           <Link href="/privacy-policy" className="hover:underline">Privacy Policy</Link>
           <Link href="/terms-of-use" className="hover:underline">Term of Use</Link>
