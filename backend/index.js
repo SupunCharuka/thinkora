@@ -18,7 +18,11 @@ import authMiddleware from './middleware/auth.js';
 
 const app = express();
 
-app.use(express.json());
+// Increase default request body limits to allow larger JSON/form payloads
+// Default express.json limit is ~100kb; raise to 10MB (adjust via env if needed)
+const DEFAULT_BODY_LIMIT = process.env.EXPRESS_BODY_LIMIT || '10mb';
+app.use(express.json({ limit: DEFAULT_BODY_LIMIT }));
+app.use(express.urlencoded({ limit: DEFAULT_BODY_LIMIT, extended: true }));
 
 // Serve uploaded files from /uploads. Use a writable directory fallback (os.tmpdir())
 const __filename = fileURLToPath(import.meta.url);
