@@ -54,7 +54,23 @@ const fileFilter = (req, file, cb) => {
 };
 
 const maxUploadSize = parseInt(process.env.MAX_UPLOAD_SIZE || String(10 * 1024 * 1024), 10); // default 10MB
-const upload = multer({ storage, fileFilter, limits: { fileSize: maxUploadSize } });
+// Max size for non-file form fields (e.g. `content` HTML). Default 10MB to match express.json limit.
+const maxFieldSize = parseInt(process.env.MAX_FIELD_SIZE || String(10 * 1024 * 1024), 10); // default 10MB
+// Max number of non-file fields to accept in a multipart form
+const maxFields = parseInt(process.env.MAX_FIELDS || String(100), 10);
+// Max parts (fields + files) to accept
+const maxParts = parseInt(process.env.MAX_PARTS || String(maxFields + 20), 10);
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: maxUploadSize,
+    fieldSize: maxFieldSize,
+    fields: maxFields,
+    parts: maxParts,
+  },
+});
 
 const generateSlug = (str = '') =>
   str
