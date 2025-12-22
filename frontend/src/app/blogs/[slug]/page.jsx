@@ -199,7 +199,7 @@ export default function blogPage({ params }) {
   return (
     <section
       ref={mainRef}
-      className={`max-w-5xl mx-auto px-6 mb-6 transform transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+      className={`max-w-5xl mx-auto px-4 sm:px-6 mb-6 transform transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
         }`}
     >
 
@@ -258,7 +258,7 @@ export default function blogPage({ params }) {
               <div className="mt-3 sm:mt-0 text-sm text-slate-500">&nbsp;</div>
             </div>
 
-            <h1 itemProp="headline" className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-6">
+            <h1 itemProp="headline" className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-6">
               {blog.title}
             </h1>
 
@@ -274,7 +274,7 @@ export default function blogPage({ params }) {
               </div>
 
               <div className="flex items-center gap-3 text-sm">
-                <span className="text-slate-500">Share this:</span>
+                <span className="hidden sm:inline-block text-slate-500">Share this:</span>
                 <div className="flex items-center gap-2">
                   <button aria-label="Share to Facebook" onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`, '_blank', 'noopener')} className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center transition transform duration-150 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879v-6.99H7.898v-2.89h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.462h-1.26c-1.243 0-1.63.772-1.63 1.562v1.875h2.773l-.444 2.89h-2.329v6.99C18.343 21.128 22 16.991 22 12z" /></svg>
@@ -292,12 +292,12 @@ export default function blogPage({ params }) {
           </header>
 
           <figure className="mb-8">
-            <div className="relative w-full h-[520px] rounded-xl shadow-lg overflow-hidden mx-auto">
+            <div className="relative w-full h-[220px] sm:h-[320px] md:h-[420px] lg:h-[520px] rounded-xl shadow-lg overflow-hidden mx-auto">
               <Image src={blog.image} alt={blog.title || 'Blog hero image'} fill className="object-cover" sizes="(min-width: 1024px) 1000px, 100vw" />
             </div>
           </figure>
 
-          <div className="prose prose-lg max-w-none text-slate-800">
+          <div className="prose prose-sm sm:prose lg:prose-lg max-w-none text-slate-800">
             {Array.isArray(blog.content)
               ? blog.content.map((p, idx) => {
                 const isHtml = /<[^>]+>/.test(p)
@@ -324,21 +324,21 @@ export default function blogPage({ params }) {
           <section className="mt-12">
             <h3 className="text-2xl font-bold mb-6">Recommended for you</h3>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex gap-4 sm:gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-3 overflow-x-auto sm:overflow-visible snap-x snap-mandatory px-2 -mx-2 sm:px-0 sm:mx-0">
               {recommendedblogs.map((r) => (
                 <Link
                   key={r.id}
                   href={r.href}
-                  className="group relative block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transform transition duration-200 ease-in-out hover:scale-105"
+                  className="group relative block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transform transition duration-200 ease-in-out hover:scale-105 min-w-[260px] sm:min-w-0 snap-start"
                 >
-                  <div className="w-full h-40 bg-gray-200 overflow-hidden relative">
+                  <div className="w-full h-36 sm:h-40 bg-gray-200 overflow-hidden relative">
                     <Image src={r.image} alt={r.title} fill className="object-cover transform transition-transform duration-500 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <div className="p-4">
                     <span className="inline-block text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-800">{r.category}</span>
-                    <h4 className="mt-3 text-lg font-semibold text-slate-900">{r.title}</h4>
-                    <p className="mt-2 text-sm text-slate-600">{r.excerpt}</p>
+                    <h4 className="mt-3 text-base sm:text-lg font-semibold text-slate-900">{r.title}</h4>
+                    <p className="mt-2 text-sm text-slate-600 hidden sm:block">{r.excerpt}</p>
                     <div className="mt-3 text-xs text-slate-500">{formatDate(blog.createdAt)}</div>
                   </div>
                 </Link>
