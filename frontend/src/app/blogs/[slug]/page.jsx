@@ -95,13 +95,16 @@ export default function blogPage({ params }) {
     try {
       const doc = new DOMParser().parseFromString(clean, 'text/html');
       const classMap = {
-        H1: ['text-2xl', 'sm:text-3xl', 'font-bold', 'mb-4'],
-        H2: ['text-xl', 'sm:text-2xl', 'font-semibold', 'mb-3'],
+        H1: ['text-2xl', 'sm:text-3xl', 'font-bold', 'mb-2'],
+        H2: ['text-xl', 'sm:text-2xl', 'font-semibold', 'mb-2'],
         H3: ['font-semibold', 'mb-2', 'text-lg'],
         H4: ['font-semibold', 'mb-1', 'text-base'],
-        P: ['text-base', 'leading-relaxed', 'mb-4']
+        P: ['text-base', 'leading-relaxed'],
+        UL: ['list-disc', 'pl-6', 'mb-2', 'space-y-2'],
+        OL: ['list-decimal', 'pl-6', 'mb-2', 'space-y-2'],
+        LI: ['mb-2', 'leading-relaxed']
       };
-      Array.from(doc.querySelectorAll('h1,h2,h3,h4,h5,h6,p')).forEach((el) => {
+      Array.from(doc.querySelectorAll('h1,h2,h3,h4,h5,h6,p,ul,ol,li')).forEach((el) => {
         const map = classMap[el.tagName] || [];
         if (map.length) {
           // preserve any existing classes but ensure design classes are present
