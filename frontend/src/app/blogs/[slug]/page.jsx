@@ -253,14 +253,7 @@ export default function blogPage({ params }) {
                 <div className="mt-3 flex items-center gap-3">
                   <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-sm transition duration-150 ease-in-out hover:shadow-sm hover:scale-105">{getPrimaryCategory(blog)}</span>
                 </div>
-                {/* Tags (if present) */}
-                {(Array.isArray(blog?.tags) ? blog.tags : (blog?.tags ? String(blog.tags).split(/\s*,\s*/) : [])).length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {(Array.isArray(blog.tags) ? blog.tags : String(blog.tags || '').split(/\s*,\s*/)).map((t) => (
-                      <span key={t} className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">#{t}</span>
-                    ))}
-                  </div>
-                )}
+               
               </div>
 
               <div className="mt-3 sm:mt-0 text-sm text-slate-500">&nbsp;</div>
@@ -327,6 +320,15 @@ export default function blogPage({ params }) {
                   )))
                 : null}
           </div>
+
+           {/* Tags (if present) */}
+                {(Array.isArray(blog?.tags) ? blog.tags : (blog?.tags ? String(blog.tags).split(/\s*,\s*/) : [])).length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {(Array.isArray(blog.tags) ? blog.tags : String(blog.tags || '').split(/\s*,\s*/)).map((t) => (
+                      <span key={t} className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">#{t}</span>
+                    ))}
+                  </div>
+                )}
 
           {/* Recommended for you */}
           <section className="mt-12">
