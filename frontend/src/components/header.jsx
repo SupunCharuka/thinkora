@@ -129,18 +129,11 @@ export default function Header() {
                   {[
                     { href: '/', label: 'Home' },
                     { href: '/blogs', label: 'Blogs' },
-                    { href: '/collections', label: 'Collections' },
-                    { href: '/trending', label: 'Trending' },
+                    { href: '/about', label: 'About' },
+                    { href: '/contact', label: 'Contact' },
                   ].map((item) => {
                     const isActive = item.href === '/' ? pathname === '/' : pathname?.startsWith(item.href);
-                    if (item.href === '/trending') {
-                      return (
-                        <Link key={item.href} href={item.href} className={`px-3 py-2 rounded hover:bg-gray-50 flex items-center justify-between ${isActive ? 'bg-white/50' : ''}`} onClick={() => setMenuOpen(false)} aria-current={isActive ? 'page' : undefined}>
-                          <span>{item.label}</span>
-                          <span className="inline-flex items-center bg-green-50 text-green-600 rounded-full px-2 py-0.5 text-xs font-medium">Hot</span>
-                        </Link>
-                      );
-                    }
+                    
                     return (
                       <Link key={item.href} href={item.href} className={`px-3 py-2 rounded hover:bg-gray-50 ${isActive ? 'bg-white/50 font-semibold' : ''}`} onClick={() => setMenuOpen(false)} aria-current={isActive ? 'page' : undefined}>
                         {item.label}
@@ -148,7 +141,7 @@ export default function Header() {
                     );
                   })}
                 </nav>
-                <div className="border-t border-gray-100 mt-2 pt-3 px-3">
+                <div className="border-t border-gray-100 mt-2 pt-3 px-3 mb-2">
                   {user ? (
                     <>
                       <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-gray-50">Dashboard</Link>

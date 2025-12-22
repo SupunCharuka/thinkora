@@ -166,13 +166,15 @@ export default function HeroSelectorPage() {
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900">
             <div className="flex">
-               
+
                 <main className="flex-1 p-6">
-                    
+
                     <Toast ref={toast} />
                     <div className="mt-6">
-                        <h2 className="text-lg font-semibold mb-4">Hero Selector (pick up to 4)</h2>
-                        <div className="bg-white shadow rounded-md p-4">
+                        
+                        <div className="bg-white shadow rounded-md p-5">
+                            <h3 className="text-lg font-semibold mb-2">Hero Selector (pick up to 4)</h3>
+                            <p className="text-sm text-gray-500 mb-3">Select up to four blogs to feature as heroes on your dashboard.</p>
                             <DataTable value={blogs}
                                 paginator
                                 rows={10}

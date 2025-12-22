@@ -40,11 +40,14 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <div className="flex">
-      
+
 
         <main className="flex-1 p-6">
-          <h1 className="text-2xl font-semibold">Profile settings</h1>
-          <div className="mt-4 bg-white shadow rounded-md">
+          
+          <div className="mt-4 bg-white shadow rounded-md p-6 max-w-4xl mx-auto">
+            <h3 className="text-lg font-semibold mb-2">Profile settings</h3>
+            <p className="text-sm text-gray-500 mb-3">Manage your profile information and settings.</p>
+
             <ProfileSettings />
           </div>
         </main>

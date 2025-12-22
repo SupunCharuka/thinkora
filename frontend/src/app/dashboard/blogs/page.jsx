@@ -318,18 +318,15 @@ export default function ViewBlogsPage() {
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900">
             <div className="flex">
-                
+
                 <main className="flex-1 p-6">
-                   
+
                     <ConfirmDialog />
                     <Toast ref={toast} />
                     <div className="mt-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-semibold">My Blogs</h2>
-
-                        </div>
-
-                        <div className="bg-white shadow rounded-md p-4">
+                        <div className="bg-white shadow rounded-md p-5">
+                            <h3 className="text-lg font-semibold mb-2">My Blogs</h3>
+                            <p className="text-sm text-gray-500 mb-3">List of blogs you have created</p>
                             {loadingBlogs ? (
                                 <div className="space-y-3">
                                     {Array.from({ length: rowsPerPage || 6 }).map((_, i) => (
