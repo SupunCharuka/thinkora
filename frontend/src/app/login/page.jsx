@@ -118,7 +118,7 @@ export default function LoginPage() {
                   <span className="text-slate-600">Remember me</span>
                 </label>
 
-                <Link href="/forgot" className="text-sm text-slate-600">Forgot?</Link>
+                {/* <Link href="/forgot" className="text-sm text-slate-600">Forgot?</Link> */}
               </div>
 
               {error && <p className="text-sm text-red-600">{error}</p>}

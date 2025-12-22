@@ -1,15 +1,15 @@
 export const metadata = {
-  title: "Signup — My Blog",
+  title: "Signup — Thinkora",
   description: "Create an account to publish and manage your blog posts.",
   openGraph: {
-    title: "Signup — My Blog",
+    title: "Signup — Thinkora",
     description: "Create an account to publish and manage your blog posts.",
-    url: "https://your-site.example/signup",
-    siteName: "My Blog",
+    url: "https://thinkora.me/signup",
+    siteName: "Thinkora",
   },
   twitter: {
     card: "summary",
-    title: "Signup — My Blog",
+    title: "Signup — Thinkora",
     description: "Create an account to publish and manage your blog posts.",
   },
 };
