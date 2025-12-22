@@ -88,6 +88,48 @@ export default function blogPage({ params }) {
     return String(c);
   };
 
+  // Sanitize HTML and add design classes to heading tags so incoming HTML matches site styles
+  const sanitizeAndStyleHTML = (html) => {
+    const clean = DOMPurify.sanitize(html);
+    if (typeof window === 'undefined') return clean;
+    try {
+      const doc = new DOMParser().parseFromString(clean, 'text/html');
+      const classMap = {
+        H1: ['text-2xl', 'sm:text-3xl', 'font-bold', 'mb-4'],
+        H2: ['text-xl', 'sm:text-2xl', 'font-semibold', 'mb-3'],
+        H3: ['font-semibold', 'mb-2', 'text-lg'],
+        H4: ['font-semibold', 'mb-1', 'text-base'],
+        P: ['text-base', 'leading-relaxed', 'mb-4']
+      };
+      Array.from(doc.querySelectorAll('h1,h2,h3,h4,h5,h6,p')).forEach((el) => {
+        const map = classMap[el.tagName] || [];
+        if (map.length) {
+          // preserve any existing classes but ensure design classes are present
+          const existing = el.getAttribute('class') || '';
+          const merged = (existing + ' ' + map.join(' ')).trim();
+          el.setAttribute('class', merged);
+        }
+      });
+      // Style Quill editor's code block markup if present
+      Array.from(doc.querySelectorAll('.ql-code-block-container')).forEach((container) => {
+        const existing = container.getAttribute('class') || '';
+        // Use pre-wrap & break-words so lines wrap instead of creating a scrollbar
+        const map = ['bg-gray-100', 'text-black', 'rounded', 'p-4', 'mb-4', 'font-mono', 'text-sm', 'whitespace-pre-wrap', 'break-words'];
+        const merged = (existing + ' ' + map.join(' ')).trim();
+        container.setAttribute('class', merged);
+        const inner = container.querySelector('.ql-code-block');
+        if (inner) {
+          const iex = inner.getAttribute('class') || '';
+          const imap = ['font-mono', 'whitespace-pre-wrap', 'break-words', 'text-sm'];
+          inner.setAttribute('class', (iex + ' ' + imap.join(' ')).trim());
+        }
+      });
+      return doc.body.innerHTML;
+    } catch (e) {
+      return clean;
+    }
+  };
+
   useEffect(() => {
     if (!mainRef.current) return
     const el = mainRef.current
@@ -253,7 +295,7 @@ export default function blogPage({ params }) {
                 <div className="mt-3 flex items-center gap-3">
                   <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-sm transition duration-150 ease-in-out hover:shadow-sm hover:scale-105">{getPrimaryCategory(blog)}</span>
                 </div>
-               
+
               </div>
 
               <div className="mt-3 sm:mt-0 text-sm text-slate-500">&nbsp;</div>
@@ -303,8 +345,8 @@ export default function blogPage({ params }) {
               ? blog.content.map((p, idx) => {
                 const isHtml = /<[^>]+>/.test(p)
                 if (isHtml) {
-                  const clean = DOMPurify.sanitize(p)
-                  return <div key={idx} className="text-dark m-0" dangerouslySetInnerHTML={{ __html: clean }} />
+                  const styled = sanitizeAndStyleHTML(p)
+                  return <div key={idx} className="text-dark m-0" dangerouslySetInnerHTML={{ __html: styled }} />
                 }
                 return (
                   <p className="text-dark m-0" key={idx}>
@@ -314,21 +356,21 @@ export default function blogPage({ params }) {
               })
               : typeof blog.content === 'string'
                 ? (/<[^>]+>/.test(blog.content)
-                  ? <div className="text-dark m-0" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.content) }} />
+                  ? <div className="text-dark m-0" dangerouslySetInnerHTML={{ __html: sanitizeAndStyleHTML(blog.content) }} />
                   : blog.content.split(/\n\n+/).map((p, idx) => (
                     <p className='text-dark m-0' key={idx}>{p}</p>
                   )))
                 : null}
           </div>
 
-           {/* Tags (if present) */}
-                {(Array.isArray(blog?.tags) ? blog.tags : (blog?.tags ? String(blog.tags).split(/\s*,\s*/) : [])).length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {(Array.isArray(blog.tags) ? blog.tags : String(blog.tags || '').split(/\s*,\s*/)).map((t) => (
-                      <span key={t} className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">#{t}</span>
-                    ))}
-                  </div>
-                )}
+          {/* Tags (if present) */}
+          {(Array.isArray(blog?.tags) ? blog.tags : (blog?.tags ? String(blog.tags).split(/\s*,\s*/) : [])).length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(Array.isArray(blog.tags) ? blog.tags : String(blog.tags || '').split(/\s*,\s*/)).map((t) => (
+                <span key={t} className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">#{t}</span>
+              ))}
+            </div>
+          )}
 
           {/* Recommended for you */}
           <section className="mt-12">
