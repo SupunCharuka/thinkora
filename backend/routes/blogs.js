@@ -203,9 +203,10 @@ router.post('/:id/view', async (req, res) => {
 });
 
 // Protected: create blog (accept multipart form with image)
+// Accepts `tags` as JSON string (e.g. `["tag1","tag2"]`) or comma-separated string (`tag1,tag2`).
 router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
   try {
-    const { title, slug: rawSlug, excerpt, content, category: categoryId, published } = req.body || {};
+    const { title, slug: rawSlug, excerpt, content, category: categoryId, published, tags: tagsRaw } = req.body || {};
 
     // Multer file: req.file
     const file = req.file;
@@ -239,6 +240,28 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
       published: publishedBool,
     });
 
+    // parse tags if provided (accept JSON array or comma-separated string)
+    try {
+      let parsedTags = [];
+      if (typeof tagsRaw !== 'undefined' && tagsRaw !== null) {
+        if (typeof tagsRaw === 'string') {
+          const s = tagsRaw.trim();
+          if (s.startsWith('[')) {
+            const p = JSON.parse(s);
+            if (Array.isArray(p)) parsedTags = p.map(String).map((t) => t.trim()).filter(Boolean);
+          } else {
+            parsedTags = s.split(/\s*,\s*/).map((t) => String(t).trim()).filter(Boolean);
+          }
+        } else if (Array.isArray(tagsRaw)) {
+          parsedTags = tagsRaw.map(String).map((t) => t.trim()).filter(Boolean);
+        }
+      }
+      if (parsedTags.length) blog.tags = parsedTags.map((t) => String(t).toLowerCase());
+    } catch (e) {
+      // ignore tag parse errors and continue without tags
+      console.warn('Failed to parse tags for new blog', e);
+    }
+
     await blog.save();
     return res.status(201).json(blog);
   } catch (err) {
@@ -266,7 +289,7 @@ router.put('/:id', authMiddleware, upload.single('image'), async (req, res) => {
     const userId = req.userId || null;
     if (!userId || String(authorId) !== String(userId)) return res.status(403).json({ message: 'Forbidden' });
 
-    const { title, slug: rawSlug, excerpt, content, category: categoryId, published } = req.body || {};
+    const { title, slug: rawSlug, excerpt, content, category: categoryId, published, tags: tagsRaw } = req.body || {};
 
     // update fields when provided
     if (title && String(title).trim()) blog.title = String(title).trim();
@@ -275,6 +298,27 @@ router.put('/:id', authMiddleware, upload.single('image'), async (req, res) => {
     if (typeof content !== 'undefined' && String(content).trim()) blog.content = String(content).trim();
     if (typeof categoryId !== 'undefined' && categoryId) blog.category = categoryId;
     if (typeof published !== 'undefined') blog.published = (published === true || published === 'true' || published === '1' || published === 1) ? true : false;
+
+    // tags: accept JSON array or comma-separated string
+    if (typeof tagsRaw !== 'undefined') {
+      try {
+        let parsedTags = [];
+        if (typeof tagsRaw === 'string') {
+          const s = tagsRaw.trim();
+          if (s.startsWith('[')) {
+            const p = JSON.parse(s);
+            if (Array.isArray(p)) parsedTags = p.map(String).map((t) => t.trim()).filter(Boolean);
+          } else {
+            parsedTags = s.split(/\s*,\s*/).map((t) => String(t).trim()).filter(Boolean);
+          }
+        } else if (Array.isArray(tagsRaw)) {
+          parsedTags = tagsRaw.map(String).map((t) => t.trim()).filter(Boolean);
+        }
+        blog.tags = parsedTags.map((t) => String(t).toLowerCase());
+      } catch (e) {
+        console.warn('Failed to parse tags for update', e);
+      }
+    }
 
     // handle optional new image
     const file = req.file;

@@ -14,6 +14,8 @@ const blogSchema = new mongoose.Schema(
     highlighted: { type: Boolean, default: false },
     // heroRank: 1..4 to mark blog as hero slot; null/undefined means not a hero
     heroRank: { type: Number, default: null },
+    // tags: array of short strings for categorization/search
+    tags: [{ type: String, trim: true, lowercase: true }],
     views: { type: Number, default: 0 },
   },
   { timestamps: true }

@@ -22,6 +22,8 @@ export default function CreateBlogForm({ onCreated, initial }) {
   const [excerpt, setExcerpt] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
+  const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState('');
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [published, setPublished] = useState(true);
@@ -42,6 +44,7 @@ export default function CreateBlogForm({ onCreated, initial }) {
       setExcerpt('');
       setContent('');
       setCategory('');
+      setTags([]);
       setPublished(true);
       setImage(null);
       if (imagePreview) {
@@ -56,6 +59,13 @@ export default function CreateBlogForm({ onCreated, initial }) {
     setExcerpt(initial.excerpt || '');
     setContent(initial.content || '');
     setCategory(initial.category?._id || initial.category || '');
+    // populate tags: accept array or comma-separated string
+    if (initial.tags) {
+      if (Array.isArray(initial.tags)) setTags(initial.tags.filter(Boolean));
+      else setTags(String(initial.tags).split(/\s*,\s*/).filter(Boolean));
+    } else {
+      setTags([]);
+    }
     setPublished(typeof initial.published !== 'undefined' ? !!initial.published : true);
     // set existing image preview when editing
     if (initial.image) {
@@ -140,6 +150,7 @@ export default function CreateBlogForm({ onCreated, initial }) {
       form.append('excerpt', excerpt.trim());
       form.append('content', content.trim());
       form.append('category', category);
+      if (tags && tags.length) form.append('tags', JSON.stringify(tags));
       form.append('published', String(published));
       if (image) form.append('image', image);
 
@@ -183,6 +194,7 @@ export default function CreateBlogForm({ onCreated, initial }) {
           setExcerpt('');
           setContent('');
           setImage(null);
+          setTags([]);
           if (imagePreview && image && image.preview) {
             URL.revokeObjectURL(imagePreview);
             setImagePreview(null);
@@ -240,6 +252,33 @@ export default function CreateBlogForm({ onCreated, initial }) {
                 ))}
               </select>
               {errors.category && <p className="mt-1 text-xs text-red-600">{errors.category}</p>}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700">Tags</label>
+            <div className="mt-2 flex items-center gap-2">
+              <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const t = String(tagInput || '').trim();
+                  if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
+                  setTagInput('');
+                }
+              }} placeholder="Add a tag and press Enter" className="flex-1 rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 border-gray-200 focus:ring-indigo-500" />
+              <button type="button" onClick={() => {
+                const t = String(tagInput || '').trim();
+                if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
+                setTagInput('');
+              }} className="px-3 py-2 rounded-md border bg-white text-sm">Add</button>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {tags.map((t) => (
+                <div key={t} className="inline-flex items-center gap-2 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-800">
+                  <span>#{t}</span>
+                  <button type="button" onClick={() => setTags((prev) => prev.filter((x) => x !== t))} className="text-xs text-red-600">×</button>
+                </div>
+              ))}
             </div>
           </div>
 
