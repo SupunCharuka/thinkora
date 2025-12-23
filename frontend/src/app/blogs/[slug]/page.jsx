@@ -393,7 +393,17 @@ export default function blogPage({ params }) {
                   <div className="p-4">
                     <span className="inline-block text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-800">{r.category}</span>
                     <h4 className="mt-3 text-base sm:text-lg font-semibold text-slate-900">{r.title}</h4>
-                    <p className="mt-2 text-sm text-slate-600 hidden sm:block">{r.excerpt}</p>
+                    <p
+                      className="mt-2 text-sm text-slate-600 hidden sm:block overflow-hidden"
+                      style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {r.excerpt}
+                    </p>
                     <div className="mt-3 text-xs text-slate-500">{formatDate(blog.createdAt)}</div>
                   </div>
                 </Link>
