@@ -17,6 +17,17 @@ export default function useDashboardAuth(options = {}) {
       try {
         // Attach Authorization header from localStorage when present (client-side)
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+        // If there's no client token, avoid calling the dashboard endpoint from public pages
+        // (prevents a visible 401 in the network console on pages like the login page).
+        if (!token) {
+          setData(null);
+          setLoading(false);
+          // If we should redirect when unauthenticated, do so.
+          if (redirect) router.push('/login');
+          return;
+        }
+
         const headers = { Accept: 'application/json' };
         if (token) headers.Authorization = `Bearer ${token}`;
 
