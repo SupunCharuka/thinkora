@@ -6,6 +6,7 @@ const blogSchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     excerpt: { type: String },
     image: { type: String },
+    gallery: [{ type: String }],
     content: { type: String, required: true },
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },

@@ -31,8 +31,9 @@ try {
   baseUploadsDir = path.join(os.tmpdir(), 'uploads');
 }
 
-// store blog images under <baseUploadsDir>/blogs
+// store blog images under <baseUploadsDir>/blogs and gallery under <baseUploadsDir>/blogs/gallery
 const uploadDir = path.join(baseUploadsDir, 'blogs');
+const galleryDir = path.join(uploadDir, 'gallery');
 
 // Ensure upload directory exists (create fallback dirs if needed)
 try {
@@ -41,7 +42,15 @@ try {
   console.error('Failed to create upload directory', uploadDir, err);
 }
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
+  destination: (req, file, cb) => {
+    const dest = file.fieldname === 'gallery' ? galleryDir : uploadDir;
+    try {
+      fs.mkdirSync(dest, { recursive: true });
+    } catch (e) {
+      // ignore
+    }
+    cb(null, dest);
+  },
   filename: (req, file, cb) => {
     const safeName = file.originalname.replace(/[^a-z0-9.\-\_]/gi, '-');
     cb(null, `${Date.now()}-${safeName}`);
@@ -218,19 +227,21 @@ router.post('/:id/view', async (req, res) => {
   }
 });
 
-// Protected: create blog (accept multipart form with image)
+// Protected: create blog (accept multipart form with image + optional gallery files)
 // Accepts `tags` as JSON string (e.g. `["tag1","tag2"]`) or comma-separated string (`tag1,tag2`).
-router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
+router.post('/', authMiddleware, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 50 }]), async (req, res) => {
   try {
     const { title, slug: rawSlug, excerpt, content, category: categoryId, published, tags: tagsRaw } = req.body || {};
 
-    // Multer file: req.file
-    const file = req.file;
+    // Multer files: req.files
+    const files = req.files || {};
+    const imageFile = files.image && files.image[0];
+    const galleryFiles = files.gallery || [];
 
     if (!title || !title.toString().trim()) return res.status(400).json({ message: 'Title is required' });
     if (!content || !content.toString().trim()) return res.status(400).json({ message: 'Content is required' });
     if (!categoryId) return res.status(400).json({ message: 'Category is required' });
-    if (!file) return res.status(400).json({ message: 'Image is required' });
+    if (!imageFile) return res.status(400).json({ message: 'Image is required' });
 
     const slug = (rawSlug && String(rawSlug).trim()) || generateSlug(title);
 
@@ -250,7 +261,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
       slug,
       excerpt: excerpt && String(excerpt).trim(),
       content: content.trim(),
-      image: `/uploads/blogs/${file.filename}`,
+      image: `/uploads/blogs/${imageFile.filename}`,
       author: req.userId || null,
       category: category._id,
       published: publishedBool,
@@ -279,6 +290,12 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
     }
 
     await blog.save();
+    // attach gallery paths if any gallery files were uploaded
+    if (galleryFiles && galleryFiles.length) {
+      const galleryPaths = galleryFiles.map((f) => `/uploads/blogs/gallery/${f.filename}`);
+      blog.gallery = galleryPaths;
+      await blog.save();
+    }
     return res.status(201).json(blog);
   } catch (err) {
     console.error('Failed to create blog', err);
@@ -287,7 +304,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
 });
 
 // Protected: update an existing blog (accept multipart form with optional image)
-router.put('/:id', authMiddleware, upload.single('image'), async (req, res) => {
+router.put('/:id', authMiddleware, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 50 }]), async (req, res) => {
   try {
     let id = req.params.id;
     if (!id || String(id) === 'undefined') {
@@ -336,9 +353,11 @@ router.put('/:id', authMiddleware, upload.single('image'), async (req, res) => {
       }
     }
 
-    // handle optional new image
-    const file = req.file;
-    if (file) {
+    // handle optional new image and gallery files
+    const files = req.files || {};
+    const imageFile = files.image && files.image[0];
+    const galleryFiles = files.gallery || [];
+    if (imageFile) {
       // remove old file if present
       try {
         if (blog.image && typeof blog.image === 'string') {
@@ -351,7 +370,56 @@ router.put('/:id', authMiddleware, upload.single('image'), async (req, res) => {
       } catch (err) {
         console.warn('Failed to remove old blog image', err);
       }
-      blog.image = `/uploads/blogs/${file.filename}`;
+      blog.image = `/uploads/blogs/${imageFile.filename}`;
+    }
+
+    // handle gallery updates: existingGallery (JSON array) + newly uploaded galleryFiles
+    try {
+      const rawExisting = req.body && req.body.existingGallery ? req.body.existingGallery : null;
+      let keep = [];
+      if (rawExisting) {
+        if (typeof rawExisting === 'string') {
+          try { keep = JSON.parse(rawExisting); } catch (e) { keep = String(rawExisting).split(/\s*,\s*/).filter(Boolean); }
+        } else if (Array.isArray(rawExisting)) keep = rawExisting;
+      }
+      // normalize kept paths to server-relative (/uploads/...)
+      const normalize = (u) => {
+        if (!u) return null;
+        try {
+          if (/^https?:\/\//i.test(u)) {
+            const idx = u.indexOf('/uploads/');
+            if (idx >= 0) return u.slice(idx);
+            return u;
+          }
+          return u;
+        } catch (e) { return u; }
+      };
+      const keptPaths = keep.map(normalize).filter(Boolean);
+
+      // delete any old gallery files that are no longer kept
+      const prevGallery = Array.isArray(blog.gallery) ? blog.gallery : [];
+      for (const oldPath of prevGallery) {
+        if (!keptPaths.includes(oldPath)) {
+          try {
+            const p = oldPath.replace(/^\/+/, '');
+            const __filename = fileURLToPath(import.meta.url);
+            const __dirname = path.dirname(__filename);
+            const disk = path.join(__dirname, '..', p);
+            if (fs.existsSync(disk)) fs.unlinkSync(disk);
+          } catch (e) {
+            console.warn('Failed to remove old gallery file', oldPath, e);
+          }
+        }
+      }
+
+      // build final gallery list: keptPaths + newly uploaded files
+      const newGallery = keptPaths.slice();
+      if (galleryFiles && galleryFiles.length) {
+        for (const f of galleryFiles) newGallery.push(`/uploads/blogs/gallery/${f.filename}`);
+      }
+      blog.gallery = newGallery;
+    } catch (e) {
+      console.warn('Failed to process gallery update', e);
     }
 
     await blog.save();
