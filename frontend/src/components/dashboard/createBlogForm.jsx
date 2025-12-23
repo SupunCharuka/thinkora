@@ -54,6 +54,19 @@ export default function CreateBlogForm({ onCreated, initial }) {
         try { URL.revokeObjectURL(imagePreview); } catch (e) { }
         setImagePreview(null);
       }
+      // revoke and clear any gallery previews (newly-added object URLs)
+      try {
+        if (galleryPreviews && galleryPreviews.length) {
+          galleryPreviews.forEach((p) => {
+            if (p && !p.isExisting && p.url) {
+              try { URL.revokeObjectURL(p.url); } catch (e) { }
+            }
+          });
+        }
+      } catch (e) { }
+      setGalleryPreviews([]);
+      setGalleryFiles([]);
+      if (galleryInputRef.current) galleryInputRef.current.value = '';
       return;
     }
 
@@ -237,9 +250,21 @@ export default function CreateBlogForm({ onCreated, initial }) {
         toast.current && toast.current.show({ severity: 'success', summary: 'Created', detail: 'Blog created successfully', life: 3000 });
       }
       if (typeof onCreated === 'function') onCreated(data);
-      // clear form on create
+      // clear or refresh form state after success
       setTimeout(() => {
+        try {
+          // Revoke and clear any newly added gallery preview URLs
+          if (galleryPreviews && galleryPreviews.length) {
+            galleryPreviews.forEach((p) => {
+              if (p && !p.isExisting && p.url) {
+                try { URL.revokeObjectURL(p.url); } catch (e) { }
+              }
+            });
+          }
+        } catch (e) { }
+
         if (!isEdit) {
+          // on create: clear entire form including gallery previews/files
           setTitle('');
           setSlug('');
           setExcerpt('');
@@ -247,12 +272,31 @@ export default function CreateBlogForm({ onCreated, initial }) {
           setImage(null);
           setTags([]);
           if (imagePreview && image && image.preview) {
-            URL.revokeObjectURL(imagePreview);
+            try { URL.revokeObjectURL(imagePreview); } catch (e) { }
             setImagePreview(null);
           }
+          setGalleryPreviews([]);
+          setGalleryFiles([]);
+          if (galleryInputRef.current) galleryInputRef.current.value = '';
           if (fileInputRef.current) fileInputRef.current.value = '';
           setCategory('');
+        } else {
+          // on update: clear newly added files and update previews from server response when available
+          setGalleryFiles([]);
+          if (data && Array.isArray(data.gallery)) {
+            const base = process.env.NEXT_PUBLIC_API_URL || '';
+            const previews = data.gallery.map((it) => {
+              const url = /^https?:\/\//i.test(it) ? it : `${base}${it.startsWith('/') ? '' : '/'}${it}`;
+              return { url, name: url.split('/').pop(), size: 0, isExisting: true };
+            });
+            setGalleryPreviews(previews);
+          } else {
+            // if backend didn't return gallery, keep existing ones and remove newly added
+            setGalleryPreviews((prev) => prev.filter((p) => p && p.isExisting));
+          }
+          if (galleryInputRef.current) galleryInputRef.current.value = '';
         }
+
         setStatus(null);
       }, 2000);
     } catch (err) {
