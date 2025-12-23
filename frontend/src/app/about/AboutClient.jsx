@@ -45,13 +45,8 @@ export default function AboutClient() {
                             <p className="text-lg text-slate-600 mb-6">Beautifully written, carefully edited, and thoughtfully designed content for readers and creators a like.</p>
 
                             <div className="flex flex-wrap gap-3 mb-6">
-                                <Link
-                                    href={data ? '/dashboard' : '/signup'}
-                                    className="inline-flex items-center gap-3 bg-[#0b1220] text-white px-5 py-3 rounded-full shadow-lg hover:scale-105 transform transition"
-                                >
-                                    {loading ? 'Loading…' : 'Get started'}
-                                </Link>
-                                <Link href="/blogs" className="inline-flex items-center gap-3 border border-slate-200 px-4 py-3 rounded-full hover:bg-slate-50 transition">Explore blogs</Link>
+                                
+                                <Link href="/blogs" className="inline-flex items-center gap-3 bg-[#0b1220] text-white px-5 py-3 rounded-full shadow-lg hover:scale-105 transform transition">Explore blogs</Link>
                             </div>
 
                             <div className="flex gap-4">

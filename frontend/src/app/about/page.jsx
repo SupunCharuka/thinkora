@@ -1,7 +1,7 @@
 import AboutClient from './AboutClient';
 
 export const metadata = {
-	title: "About — Blog",
+	title: "About — Thinkora",
 	description: "Learn about our vision and mission — building a home for thoughtful, lasting stories.",
 };
 
