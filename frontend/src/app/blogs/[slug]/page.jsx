@@ -1,5 +1,6 @@
 "use client"
 import React, { use, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import Image from 'next/image'
 import DOMPurify from 'dompurify'
@@ -14,6 +15,8 @@ export default function blogPage({ params }) {
   const [recommendedblogs, setRecommendedBlogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  // Lightbox state for viewing full-size images
+  const [lightbox, setLightbox] = useState({ open: false, src: '', alt: '' })
 
   // Render helper for comments (supports one level of replies)
   const renderComment = (c) => (
@@ -150,6 +153,21 @@ export default function blogPage({ params }) {
     obs.observe(el)
     return () => obs.disconnect()
   }, [])
+
+  // Lightbox helpers
+  const openLightbox = (src, alt) => {
+    if (!src) return
+    setLightbox({ open: true, src, alt: alt || '' })
+  }
+  const closeLightbox = () => setLightbox({ open: false, src: '', alt: '' })
+
+  // close on Escape
+  useEffect(() => {
+    if (!lightbox.open) return
+    const onKey = (e) => { if (e.key === 'Escape') closeLightbox() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightbox.open])
 
   // Fetch blog by slug and recommended blogs
   useEffect(() => {
@@ -339,7 +357,15 @@ export default function blogPage({ params }) {
 
           <figure className="mb-8">
             <div className="relative w-full h-[220px] sm:h-[320px] md:h-[420px] lg:h-[520px] rounded-xl shadow-lg overflow-hidden mx-auto">
-              <Image src={blog.image} alt={blog.title || 'Blog hero image'} fill className="object-cover" sizes="(min-width: 1024px) 1000px, 100vw" />
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => openLightbox(blog.image, blog.title)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openLightbox(blog.image, blog.title) }}
+                className="w-full h-full cursor-zoom-in relative"
+              >
+                <Image src={blog.image} alt={blog.title || 'Blog hero image'} fill className="object-cover" sizes="(min-width: 1024px) 1000px, 100vw" />
+              </div>
             </div>
           </figure>
 
@@ -389,6 +415,13 @@ export default function blogPage({ params }) {
                   <div className="w-full h-36 sm:h-40 bg-gray-200 overflow-hidden relative">
                     <Image src={r.image} alt={r.title} fill className="object-cover transform transition-transform duration-500 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {/* overlay button to open lightbox without following the link */}
+                    {/* <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); openLightbox(r.image, r.title) }}
+                      aria-label={`Open ${r.title} full size`}
+                      className="absolute inset-0 w-full h-full z-10"
+                    /> */}
                   </div>
                   <div className="p-4">
                     <span className="inline-block text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-800">{r.category}</span>
@@ -475,6 +508,21 @@ export default function blogPage({ params }) {
           </section> */}
         </article>
       )}
+      {/* Lightbox modal for full-size image (render into document.body to avoid clipped fixed positioning) */}
+      {typeof document !== 'undefined' && lightbox.open ? createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={closeLightbox}>
+          <div className="relative w-full max-w-6xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <button onClick={closeLightbox} aria-label="Close image" className="fixed top-4 right-4 z-[9999] inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/90 text-black text-xl drop-shadow">×</button>
+            <div className="relative w-full h-[80vh]">
+              <Image src={lightbox.src} alt={lightbox.alt || 'Image'} fill className="object-contain object-center" sizes="(min-width: 1024px) 1000px, 100vw" />
+            </div>
+            {lightbox.alt && (
+              <div className="mt-3 text-center text-white text-lg font-semibold drop-shadow-sm">{lightbox.alt}</div>
+            )}
+          </div>
+        </div>,
+        document.body
+      ) : null}
     </section>
   )
 }
