@@ -102,7 +102,7 @@ export default function Header() {
               ) : (
                 <>
                   <Link href="/login" className="text-sm text-gray-700 hover:text-black">Sign in</Link>
-                  <Link href="/signup" className="inline-flex items-center px-3 py-1.5 bg-black text-white rounded-md text-sm hover:bg-gray-900">Sign up</Link>
+                  {/* <Link href="/signup" className="inline-flex items-center px-3 py-1.5 bg-black text-white rounded-md text-sm hover:bg-gray-900">Sign up</Link> */}
                 </>
               )}
             </div>
