@@ -435,7 +435,51 @@ export default function blogPage({ params }) {
             </div>
           </figure>
 
-          
+          {/* Creative gallery thumbnails (optional) */}
+          {Array.isArray(blog?.gallery) && blog.gallery.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">Gallery</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 auto-rows-[120px] grid-flow-row-dense">
+                {blog.gallery.map((g, i) => {
+                  // Creative spans: make some items larger/taller/smaller for a masonry-like layout
+                  const large = i % 7 === 0 // every 7th is big
+                  const tall = i % 5 === 0 && !large // every 5th (not large) is tall
+                  const short = (i % 4 === 3 || i % 5 === 4) && !large && !tall // every 4th or 5th (0-based) becomes a short/narrow tile
+                  const classes = large
+                    ? 'md:col-span-3 md:row-span-2'
+                    : tall
+                      ? 'md:col-span-2 md:row-span-2'
+                      : short
+                        ? 'md:col-span-1 md:row-span-1'
+                        : 'md:col-span-2 md:row-span-1'
+                  return (
+                    <button
+                      key={`${g}-${i}`}
+                      type="button"
+                      onClick={() => openGalleryAt(i)}
+                      onMouseEnter={(e) => onThumbHover(g, e, i, blog.title || `Gallery ${i + 1}`)}
+                      onMouseLeave={onThumbLeave}
+                      onFocus={(e) => onThumbHover(g, e, i, blog.title || `Gallery ${i + 1}`)}
+                      onBlur={onThumbLeave}
+                      className={`relative block w-full h-full cursor-zoom-in rounded-lg overflow-hidden bg-gray-100 focus:outline-none group ${classes} ring-0 focus:ring-4 focus:ring-amber-200`}
+                      aria-label={`Open image ${i + 1}`}
+                    >
+                      <div className={`absolute inset-0 transition-transform duration-700 transform-gpu group-hover:scale-105 ${large ? 'shadow-2xl' : ''}`}>
+                        <Image src={g} alt={blog.title || `Gallery ${i + 1}`} fill className="object-cover w-full h-full" sizes="(min-width: 1024px) 1000px, 100vw" />
+                      </div>
+
+                      {/* gradient overlay + caption */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute left-3 bottom-3 right-3 transform translate-y-3 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 text-white flex items-center justify-end">
+                        <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded">{i + 1}</span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="prose prose-sm sm:prose lg:prose-lg max-w-none text-slate-800 mb-6" itemProp="articleBody">
             {Array.isArray(blog.content)
               ? blog.content.map((p, idx) => {
@@ -458,45 +502,6 @@ export default function blogPage({ params }) {
                   )))
                 : null}
           </div>
-
-          {/* Creative gallery thumbnails (optional) */}
-          {Array.isArray(blog?.gallery) && blog.gallery.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-3">Gallery</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 auto-rows-[120px] grid-flow-row-dense">
-                {blog.gallery.map((g, i) => {
-                  // Creative spans: make some items larger for a masonry-like layout
-                  const large = i % 7 === 0 // every 7th is big
-                  const tall = i % 5 === 0 && !large
-                  const classes = `${large ? 'md:col-span-3 md:row-span-2' : tall ? 'md:col-span-2 md:row-span-2' : 'md:col-span-2 md:row-span-1'}`
-                  return (
-                    <button
-                      key={`${g}-${i}`}
-                      type="button"
-                      onClick={() => openGalleryAt(i)}
-                      onMouseEnter={(e) => onThumbHover(g, e, i, blog.title || `Gallery ${i + 1}`)}
-                      onMouseLeave={onThumbLeave}
-                      onFocus={(e) => onThumbHover(g, e, i, blog.title || `Gallery ${i + 1}`)}
-                      onBlur={onThumbLeave}
-                      className={`relative block w-full h-full cursor-zoom-in rounded-lg overflow-hidden bg-gray-100 focus:outline-none group ${classes} ring-0 focus:ring-4 focus:ring-amber-200`}
-                      aria-label={`Open image ${i + 1}`}
-                    >
-                      <div className={`absolute inset-0 transition-transform duration-700 transform-gpu group-hover:scale-105 ${large ? 'shadow-2xl' : ''}`}>
-                        <Image src={g} alt={blog.title || `Gallery ${i + 1}`} fill className="object-cover w-full h-full" sizes="(min-width: 1024px) 1000px, 100vw" />
-                      </div>
-
-                      {/* gradient overlay + caption */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <div className="absolute left-3 bottom-3 right-3 transform translate-y-3 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 text-white flex items-center justify-between">
-                        <span className="text-sm font-medium truncate drop-shadow">{blog.title || ''}</span>
-                        <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded">{i + 1}</span>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
 
 
           {/* Tags (if present) */}
@@ -653,12 +658,7 @@ export default function blogPage({ params }) {
             <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
               <Image src={hoverPreview.src} alt={hoverPreview.alt || blog?.title || 'Preview'} fill className="object-contain bg-black" />
             </div>
-            {hoverPreview.alt ? (
-              <div className="px-3 py-2 text-sm text-white bg-gradient-to-t from-black/80 to-transparent">
-                <div className="font-medium truncate">{hoverPreview.alt}</div>
-                {hoverPreview.index >= 0 && <div className="text-xs text-white/80 mt-1">{hoverPreview.index + 1} / {blog?.gallery?.length || 0}</div>}
-              </div>
-            ) : null}
+            {/* removed title caption from hover preview per request */}
           </div>,
           document.body
         ) : null}
