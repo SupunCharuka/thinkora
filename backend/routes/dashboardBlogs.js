@@ -190,6 +190,35 @@ router.delete('/:id', async (req, res) => {
       console.warn('Failed to remove blog image file', err);
     }
 
+    // attempt to remove gallery files (if any) under uploads/blogs/gallery
+    try {
+      if (Array.isArray(blog.gallery) && blog.gallery.length) {
+        const __filename2 = fileURLToPath(import.meta.url);
+        const __dirname2 = path.dirname(__filename2);
+        const galleryRoot = path.resolve(path.join(__dirname2, '..', 'uploads', 'blogs', 'gallery'));
+        for (const g of blog.gallery) {
+          try {
+            if (!g || typeof g !== 'string') continue;
+            const rel = g.replace(/^\/+/, '');
+            const diskPath = path.resolve(path.join(__dirname2, '..', rel));
+            // ensure we only delete files inside the gallery uploads folder
+            if (diskPath.startsWith(galleryRoot)) {
+              if (fs.existsSync(diskPath)) fs.unlinkSync(diskPath);
+            } else {
+              // fallback: if path contains uploads/blogs/gallery, attempt to delete
+              if (rel.includes('uploads' + path.sep + 'blogs' + path.sep + 'gallery')) {
+                if (fs.existsSync(diskPath)) fs.unlinkSync(diskPath);
+              }
+            }
+          } catch (e) {
+            console.warn('Failed to remove gallery file', g, e);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to remove gallery files', err);
+    }
+
     await Blog.deleteOne({ _id: blog._id });
     return res.json({ message: 'Deleted', id: blog._id });
   } catch (err) {
