@@ -102,7 +102,7 @@ export default function Header() {
               ) : (
                 <>
                   <Link href="/login" className="text-sm text-gray-700 hover:text-black">Sign in</Link>
-                  <Link href="/signup" className="inline-flex items-center px-3 py-1.5 bg-black text-white rounded-md text-sm hover:bg-gray-900">Sign up</Link>
+                  {/* <Link href="/signup" className="inline-flex items-center px-3 py-1.5 bg-black text-white rounded-md text-sm hover:bg-gray-900">Sign up</Link> */}
                 </>
               )}
             </div>
@@ -149,7 +149,7 @@ export default function Header() {
                   ) : (
                     <>
                       <Link href="/login" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-gray-50">Sign in</Link>
-                      <Link href="/signup" onClick={() => setMenuOpen(false)} className="mt-2 inline-block w-full text-center px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Sign up</Link>
+                      {/* <Link href="/signup" onClick={() => setMenuOpen(false)} className="mt-2 inline-block w-full text-center px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Sign up</Link> */}
                     </>
                   )}
                 </div>
