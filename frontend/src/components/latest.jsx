@@ -93,7 +93,7 @@ export default function Latest() {
                     ) : (
                         (items || []).slice(0, visibleCount).map((blog, idx) => {
                             // Use blog.image directly (fall back to placeholder), like Highlight component
-                          
+
                             return (
                                 <article key={blog._id || blog.slug || idx} className="relative rounded-lg overflow-hidden shadow-md transform transition-all duration-300 ease-out group hover:shadow-xl hover:scale-105">
                                     <Link href={`/blogs/${blog.slug || ''}`} className="group block rounded-lg overflow-hidden shadow-lg">
@@ -113,6 +113,14 @@ export default function Latest() {
                                                     {blog.category && (typeof blog.category === 'object' ? blog.category.name : blog.category)}
                                                 </span>
                                             </div>
+
+                                            {blog.highlighted && (
+                                                <div className="absolute top-4 right-4">
+                                                    <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg>
+                                                    </div>
+                                                </div>
+                                            )}
 
 
 
