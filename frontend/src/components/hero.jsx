@@ -13,7 +13,22 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
   const autoplayRef = useRef(null);
   const isPaused = useRef(false);
 
+  const [clampLines, setClampLines] = useState(3);
+
   const visibleSlides = slides.slice(0, 4);
+
+  useEffect(() => {
+    const updateClamp = () => {
+      const w = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      if (w < 480) setClampLines(2);
+      else if (w < 640) setClampLines(3);
+      else setClampLines(4);
+    };
+
+    updateClamp();
+    window.addEventListener('resize', updateClamp);
+    return () => window.removeEventListener('resize', updateClamp);
+  }, []);
 
   useEffect(() => {
     if (blogs && blogs.length) {
@@ -193,8 +208,18 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
         <div className="relative z-10 max-w-6xl mx-auto px-6 md:px-8 h-full grid grid-cols-1 md:grid-cols-4 items-center">
           <div className="md:col-span-2 pr-0 md:pr-8 text-white py-6 md:py-0" style={contentStyle}>
             <span className="inline-block bg-white/10 text-sm text-white/90 rounded-full px-3 py-1 mb-4">{current.category || 'Lifestyle'}</span>
-            <h1 className="text-xl sm:text-3xl font-extrabold leading-tight mb-3">{current.title || 'The Future of Work: Remote, AI-Driven, and Flexible'}</h1>
-            <p className="text-sm sm:text-base text-white/90 max-w-xl mb-4">{current.excerpt || 'Once dismissed as counterculture, urban fashion has moved from the sidewalks to the catwalks of major fashion capitals.'}</p>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold leading-tight mb-3">{current.title || 'The Future of Work: Remote, AI-Driven, and Flexible'}</h1>
+            <p
+              className="text-sm sm:text-base text-white/90 max-w-xl mb-4 overflow-hidden"
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: clampLines,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {current.excerpt || 'Once dismissed as counterculture, urban fashion has moved from the sidewalks to the catwalks of major fashion capitals.'}
+            </p>
 
             <div className="mt-4">
               <div className="text-sm text-white/90">
@@ -227,7 +252,7 @@ export default function Hero({ blogs = [], autoplay = true, interval = 5000, sho
                     </div>
                     <div className="text-white">
                       <div className="font-semibold text-sm md:text-base">{r.title}</div>
-                      <div className="text-xs text-white/70">{r.date}</div>
+                      {/* <div className="text-xs text-white/70">{r.date}</div> */}
                     </div>
                   </Link>
                 );
