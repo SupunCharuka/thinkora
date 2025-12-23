@@ -1,15 +1,15 @@
 export const metadata = {
-  title: "Contact — My Blog",
+  title: "Contact — Thinkora",
   description: "Get in touch with us for questions, partnerships, or support.",
   openGraph: {
-    title: "Contact — My Blog",
+    title: "Contact — Thinkora",
     description: "Get in touch with us for questions, partnerships, or support.",
-    url: "https://your-site.example/contact",
-    siteName: "My Blog",
+    url: "https://thinkora.me/contact",
+    siteName: "Thinkora",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contact — My Blog",
+    title: "Contact — Thinkora",
     description: "Get in touch with us for questions, partnerships, or support.",
   },
 };

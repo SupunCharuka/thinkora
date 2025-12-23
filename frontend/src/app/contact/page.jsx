@@ -82,7 +82,7 @@ export default function ContactPage() {
                     </div>
 
                     <div>
-                        <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-8 space-y-4">
+                        <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-8 space-y-4 mb-6">
                             <div className="flex gap-4">
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-slate-700">Full name</label>

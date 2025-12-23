@@ -155,16 +155,65 @@ export default function blogPage({ params }) {
   }, [])
 
   // Lightbox helpers
+  const [galleryIndex, setGalleryIndex] = useState(-1)
+  const [hoverPreview, setHoverPreview] = useState({ visible: false, src: '', alt: '', index: -1, top: 0, left: 0, width: 0 })
+
   const openLightbox = (src, alt) => {
     if (!src) return
+    setGalleryIndex(-1)
     setLightbox({ open: true, src, alt: alt || '' })
   }
-  const closeLightbox = () => setLightbox({ open: false, src: '', alt: '' })
+  const openGalleryAt = (index) => {
+    if (!blog || !Array.isArray(blog.gallery) || !blog.gallery[index]) return
+    setGalleryIndex(index)
+    setLightbox({ open: true, src: blog.gallery[index], alt: blog.title || '' })
+  }
+  const closeLightbox = () => { setLightbox({ open: false, src: '', alt: '' }); setGalleryIndex(-1) }
+
+  const showPrev = () => {
+    if (!Array.isArray(blog?.gallery) || blog.gallery.length === 0) return
+    setGalleryIndex((i) => {
+      const next = i <= 0 ? blog.gallery.length - 1 : i - 1
+      setLightbox({ open: true, src: blog.gallery[next], alt: blog.title || '' })
+      return next
+    })
+  }
+  const showNext = () => {
+    if (!Array.isArray(blog?.gallery) || blog.gallery.length === 0) return
+    setGalleryIndex((i) => {
+      const next = i >= blog.gallery.length - 1 ? 0 : i + 1
+      setLightbox({ open: true, src: blog.gallery[next], alt: blog.title || '' })
+      return next
+    })
+  }
+
+  // Hover preview handlers: show a larger preview near the thumbnail
+  const onThumbHover = (src, e, index = -1, alt = '') => {
+    if (typeof window === 'undefined') return
+    try {
+      const rect = e.currentTarget.getBoundingClientRect()
+      const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+      const previewWidth = Math.min(640, Math.max(320, Math.round(rect.width * 2)))
+      // default place to the right of thumbnail, fallback to left/top if overflowing
+      let left = rect.right + 12
+      if (left + previewWidth > vw) left = rect.left - previewWidth - 12
+      let top = Math.max(12, rect.top - 12)
+      setHoverPreview({ visible: true, src, alt: alt || '', index, top, left, width: previewWidth })
+    } catch (e) {
+      setHoverPreview({ visible: true, src, alt: '', index: -1, top: 12, left: 12, width: 420 })
+    }
+  }
+
+  const onThumbLeave = () => setHoverPreview({ visible: false, src: '', top: 0, left: 0, width: 0 })
 
   // close on Escape
   useEffect(() => {
     if (!lightbox.open) return
-    const onKey = (e) => { if (e.key === 'Escape') closeLightbox() }
+    const onKey = (e) => {
+      if (e.key === 'Escape') closeLightbox()
+      if (e.key === 'ArrowLeft') showPrev()
+      if (e.key === 'ArrowRight') showNext()
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [lightbox.open])
@@ -196,6 +245,23 @@ export default function blogPage({ params }) {
           } catch (e) {
             // leave as-is on parse error
           }
+        }
+        // Normalize gallery URLs (if present) similar to hero image
+        if (data && data.gallery && Array.isArray(data.gallery)) {
+          data.gallery = data.gallery.map((g) => {
+            if (!g) return g
+            if (typeof g !== 'string') return g
+            if (g.startsWith('/')) return g
+            if (base && g.startsWith(base)) {
+              try {
+                const u = new URL(g)
+                return u.pathname + (u.search || '')
+              } catch (e) {
+                return g
+              }
+            }
+            return g
+          })
         }
         setBlog(data)
 
@@ -369,7 +435,8 @@ export default function blogPage({ params }) {
             </div>
           </figure>
 
-          <div className="prose prose-sm sm:prose lg:prose-lg max-w-none text-slate-800">
+          
+          <div className="prose prose-sm sm:prose lg:prose-lg max-w-none text-slate-800 mb-6" itemProp="articleBody">
             {Array.isArray(blog.content)
               ? blog.content.map((p, idx) => {
                 const isHtml = /<[^>]+>/.test(p)
@@ -392,6 +459,46 @@ export default function blogPage({ params }) {
                 : null}
           </div>
 
+          {/* Creative gallery thumbnails (optional) */}
+          {Array.isArray(blog?.gallery) && blog.gallery.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">Gallery</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 auto-rows-[120px] grid-flow-row-dense">
+                {blog.gallery.map((g, i) => {
+                  // Creative spans: make some items larger for a masonry-like layout
+                  const large = i % 7 === 0 // every 7th is big
+                  const tall = i % 5 === 0 && !large
+                  const classes = `${large ? 'md:col-span-3 md:row-span-2' : tall ? 'md:col-span-2 md:row-span-2' : 'md:col-span-2 md:row-span-1'}`
+                  return (
+                    <button
+                      key={`${g}-${i}`}
+                      type="button"
+                      onClick={() => openGalleryAt(i)}
+                      onMouseEnter={(e) => onThumbHover(g, e, i, blog.title || `Gallery ${i + 1}`)}
+                      onMouseLeave={onThumbLeave}
+                      onFocus={(e) => onThumbHover(g, e, i, blog.title || `Gallery ${i + 1}`)}
+                      onBlur={onThumbLeave}
+                      className={`relative block w-full h-full cursor-zoom-in rounded-lg overflow-hidden bg-gray-100 focus:outline-none group ${classes} ring-0 focus:ring-4 focus:ring-amber-200`}
+                      aria-label={`Open image ${i + 1}`}
+                    >
+                      <div className={`absolute inset-0 transition-transform duration-700 transform-gpu group-hover:scale-105 ${large ? 'shadow-2xl' : ''}`}>
+                        <Image src={g} alt={blog.title || `Gallery ${i + 1}`} fill className="object-cover w-full h-full" sizes="(min-width: 1024px) 1000px, 100vw" />
+                      </div>
+
+                      {/* gradient overlay + caption */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute left-3 bottom-3 right-3 transform translate-y-3 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 text-white flex items-center justify-between">
+                        <span className="text-sm font-medium truncate drop-shadow">{blog.title || ''}</span>
+                        <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded">{i + 1}</span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+
           {/* Tags (if present) */}
           {(Array.isArray(blog?.tags) ? blog.tags : (blog?.tags ? String(blog.tags).split(/\s*,\s*/) : [])).length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -402,7 +509,7 @@ export default function blogPage({ params }) {
           )}
 
           {/* Recommended for you */}
-          <section className="mt-12">
+          <section className="mt-6 mb-2">
             <h3 className="text-2xl font-bold mb-6">Recommended for you</h3>
 
             <div className="flex gap-4 sm:gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-3 overflow-x-auto sm:overflow-visible snap-x snap-mandatory px-2 -mx-2 sm:px-0 sm:mx-0">
@@ -510,19 +617,51 @@ export default function blogPage({ params }) {
       )}
       {/* Lightbox modal for full-size image (render into document.body to avoid clipped fixed positioning) */}
       {typeof document !== 'undefined' && lightbox.open ? createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={closeLightbox}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={closeLightbox}>
           <div className="relative w-full max-w-6xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <button onClick={closeLightbox} aria-label="Close image" className="fixed top-4 right-4 z-[9999] inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/90 text-black text-xl drop-shadow">×</button>
-            <div className="relative w-full h-[80vh]">
+
+            {/* Prev/Next controls for gallery */}
+            {Array.isArray(blog?.gallery) && galleryIndex >= 0 && (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); showPrev() }} aria-label="Previous" className="absolute left-2 top-1/2 -translate-y-1/2 z-[9998] inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/90 text-black">‹</button>
+                <button onClick={(e) => { e.stopPropagation(); showNext() }} aria-label="Next" className="absolute right-2 top-1/2 -translate-y-1/2 z-[9998] inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/90 text-black">›</button>
+              </>
+            )}
+
+            <div className="relative w-full h-[80vh] flex items-center justify-center">
               <Image src={lightbox.src} alt={lightbox.alt || 'Image'} fill className="object-contain object-center" sizes="(min-width: 1024px) 1000px, 100vw" />
             </div>
-            {lightbox.alt && (
-              <div className="mt-3 text-center text-white text-lg font-semibold drop-shadow-sm">{lightbox.alt}</div>
-            )}
+            <div className="mt-3 text-center text-white text-lg font-semibold drop-shadow-sm flex items-center justify-center gap-4">
+              <span>{lightbox.alt}</span>
+              {galleryIndex >= 0 && Array.isArray(blog?.gallery) && (
+                <span className="text-sm text-white/80">{galleryIndex + 1} / {blog.gallery.length}</span>
+              )}
+            </div>
           </div>
         </div>,
         document.body
       ) : null}
+        {/* Hover preview portal */}
+        {typeof document !== 'undefined' && hoverPreview.visible ? createPortal(
+          <div
+            style={{ position: 'fixed', top: hoverPreview.top, left: hoverPreview.left, width: hoverPreview.width, maxWidth: '90vw', zIndex: 99999, transition: 'opacity 180ms ease' }}
+            className="rounded-lg overflow-hidden shadow-2xl bg-black/90 border border-white/10"
+            onMouseEnter={() => { /* keep preview visible when pointer moves into preview */ }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
+              <Image src={hoverPreview.src} alt={hoverPreview.alt || blog?.title || 'Preview'} fill className="object-contain bg-black" />
+            </div>
+            {hoverPreview.alt ? (
+              <div className="px-3 py-2 text-sm text-white bg-gradient-to-t from-black/80 to-transparent">
+                <div className="font-medium truncate">{hoverPreview.alt}</div>
+                {hoverPreview.index >= 0 && <div className="text-xs text-white/80 mt-1">{hoverPreview.index + 1} / {blog?.gallery?.length || 0}</div>}
+              </div>
+            ) : null}
+          </div>,
+          document.body
+        ) : null}
     </section>
   )
 }
