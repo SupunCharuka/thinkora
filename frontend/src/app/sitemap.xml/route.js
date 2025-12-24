@@ -32,7 +32,8 @@ export async function GET() {
     const xmlItems = items
         .map((it) => {
             const lastmod = it.lastmod ? `<lastmod>${new Date(it.lastmod).toISOString()}</lastmod>` : '';
-            return `  <url>\n    <loc>${it.url}</loc>\n    ${lastmod}\n  </url>`;
+            const loc = (/^https?:\/\//i.test(it.url)) ? it.url : `${siteUrl.replace(/\/$/, '')}${it.url.startsWith('/') ? it.url : `/${it.url}`}`;
+            return `  <url>\n    <loc>${loc}</loc>\n    ${lastmod}\n  </url>`;
         })
         .join('\n');
 
