@@ -16,6 +16,7 @@ import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { FilterMatchMode } from 'primereact/api';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { Dialog } from 'primereact/dialog';
 import { Toast } from 'primereact/toast';
 
 export default function ViewBlogsPage() {
@@ -24,6 +25,12 @@ export default function ViewBlogsPage() {
     const [loadingBlogs, setLoadingBlogs] = useState(false);
     const [error, setError] = useState(null);
     const toast = React.useRef(null);
+    const galleryInputRef = React.useRef(null);
+    const [uploadingGalleryFor, setUploadingGalleryFor] = useState(null);
+    const [galleryFiles, setGalleryFiles] = useState([]);
+    const [galleryPreviews, setGalleryPreviews] = useState([]); // { url, name, size, isExisting }
+    const [existingGalleryPaths, setExistingGalleryPaths] = useState([]);
+    const maxUploadSize = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE || '10485760', 10);
     const [rowsPerPage, setRowsPerPage] = useState(9);
     const [filters, setFilters] = useState({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -70,6 +77,46 @@ export default function ViewBlogsPage() {
         fetchBlogs(controller.signal);
         return () => controller.abort();
     }, [checking, data]);
+
+    function handleGallerySelect(files) {
+        if (!files) return;
+        const list = Array.from(files);
+        const accepted = [];
+        const rejected = [];
+        for (const f of list) {
+            if (f.size > maxUploadSize) rejected.push(f); else accepted.push(f);
+        }
+        if (rejected.length) {
+            toast.current && toast.current.show({ severity: 'error', summary: 'File too large', detail: `One or more files exceed the max size (${Math.round(maxUploadSize / 1024 / 1024)}MB)`, life: 6000 });
+        }
+        if (!accepted.length) return;
+        const newPreviews = accepted.map((f) => ({ url: URL.createObjectURL(f), name: f.name, size: f.size, isExisting: false }));
+        setGalleryFiles((prev) => [...prev, ...accepted]);
+        setGalleryPreviews((prev) => [...prev, ...newPreviews]);
+    }
+
+    function handleRemoveGallery(index) {
+        setGalleryPreviews((prev) => {
+            const item = prev[index];
+            if (item && !item.isExisting && item.url) {
+                try { URL.revokeObjectURL(item.url); } catch (e) { }
+            }
+            const next = prev.slice(); next.splice(index, 1); return next;
+        });
+        setGalleryFiles((prev) => {
+            const next = prev.slice();
+            // try to match by name+size
+            const idx = next.findIndex((f) => f && f.name === galleryPreviews[index]?.name && f.size === galleryPreviews[index]?.size);
+            if (idx >= 0) next.splice(idx, 1);
+            return next;
+        });
+        // if removing an existing path, remove it from existingGalleryPaths
+        setExistingGalleryPaths((prev) => {
+            const removed = galleryPreviews[index] && galleryPreviews[index].isExisting ? galleryPreviews[index].url : null;
+            if (!removed) return prev;
+            return prev.filter((p) => p !== removed && p !== (removed.startsWith('/') ? removed : `/${removed.replace(/^\/+/, '')}`));
+        });
+    }
 
     // adjust rows per page based on window width for responsiveness
     useEffect(() => {
@@ -242,6 +289,21 @@ export default function ViewBlogsPage() {
                     toast.current && toast.current.show({ severity: 'error', summary: 'Error', detail: 'Network error', life: 4000 });
                 }
             }} />
+            <Button icon="pi pi-images" className="p-button-sm p-button-info" aria-label={`Upload gallery ${row.title}`} onClick={() => {
+                // open gallery uploader for this blog
+                const id = row._id || row.id || row.slug;
+                setUploadingGalleryFor(id);
+                // initialize previews from existing gallery paths
+                const base = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+                const g = Array.isArray(row.gallery) ? row.gallery : (row.gallery ? String(row.gallery).split(/\s*,\s*/).filter(Boolean) : []);
+                const previews = g.map((it) => {
+                    const url = /^https?:\/\//i.test(it) ? it : (it.startsWith('/') ? it : `${base}/${it.replace(/^\/+/, '')}`);
+                    return { url, name: url.split('/').pop(), size: 0, isExisting: true };
+                });
+                setGalleryPreviews(previews);
+                setExistingGalleryPaths(g.map((it) => (it.startsWith('/') ? it : `/${it.replace(/^\/+/, '')}`)));
+                setGalleryFiles([]);
+            }} />
         </div>
     );
 
@@ -327,6 +389,107 @@ export default function ViewBlogsPage() {
                         <div className="bg-white shadow rounded-md p-5">
                             <h3 className="text-lg font-semibold mb-2">My Blogs</h3>
                             <p className="text-sm text-gray-500 mb-3">List of blogs you have created</p>
+                            <Dialog header="Upload gallery" visible={!!uploadingGalleryFor} modal className="w-full max-w-3xl" onHide={() => {
+                                setUploadingGalleryFor(null);
+                                setGalleryFiles([]);
+                                setGalleryPreviews([]);
+                                setExistingGalleryPaths([]);
+                            }}>
+                                <div className="p-4">
+                                    <div className="p-4 border rounded-lg">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="text-sm font-medium">Upload gallery for blog</div>
+                                            <div className="flex gap-2">
+                                                <button type="button" onClick={() => {
+                                                    // cancel
+                                                    setUploadingGalleryFor(null);
+                                                    setGalleryFiles([]);
+                                                    setGalleryPreviews([]);
+                                                    setExistingGalleryPaths([]);
+                                                }} className="px-3 py-1 rounded border bg-white text-sm">Cancel</button>
+                                                <button type="button" onClick={async () => {
+                                                    // perform upload: send existingGallery + new files
+                                                    if (!uploadingGalleryFor) return;
+                                                    try {
+                                                        const form = new FormData();
+                                                        if (existingGalleryPaths && existingGalleryPaths.length) form.append('existingGallery', JSON.stringify(existingGalleryPaths));
+                                                        for (const f of galleryFiles) form.append('gallery', f);
+                                                        const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+                                                        const headers = {};
+                                                        if (token) headers.Authorization = `Bearer ${token}`;
+                                                        const id = encodeURIComponent(String(uploadingGalleryFor));
+                                                        const base = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+                                                        const res = await fetch(`${base}/api/v1/blogs/${id}`, { method: 'PUT', credentials: 'include', headers, body: form });
+                                                        if (!res.ok) {
+                                                            const err = await res.json().catch(() => ({}));
+                                                            toast.current && toast.current.show({ severity: 'error', summary: 'Upload failed', detail: err.message || 'Failed to upload gallery', life: 5000 });
+                                                            return;
+                                                        }
+                                                        const updated = await res.json();
+                                                        setBlogs(prev => prev.map(b => (String(b._id || b.id) === String(updated._id || updated.id) ? ({ ...b, gallery: updated.gallery }) : b)));
+                                                        toast.current && toast.current.show({ severity: 'success', summary: 'Uploaded', detail: 'Gallery uploaded', life: 3000 });
+                                                        // cleanup
+                                                        setUploadingGalleryFor(null);
+                                                        setGalleryFiles([]);
+                                                        setGalleryPreviews([]);
+                                                        setExistingGalleryPaths([]);
+                                                    } catch (err) {
+                                                        console.error('Gallery upload failed', err);
+                                                        toast.current && toast.current.show({ severity: 'error', summary: 'Upload failed', detail: 'Network error', life: 5000 });
+                                                    }
+                                                }} className="px-3 py-1 rounded bg-indigo-600 text-white text-sm">Upload</button>
+                                            </div>
+                                        </div>
+
+                                        <input ref={galleryInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
+                                            const files = e.target.files ? Array.from(e.target.files) : [];
+                                            handleGallerySelect(files);
+                                        }} />
+
+                                        <div
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={() => galleryInputRef.current && galleryInputRef.current.click()}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') galleryInputRef.current && galleryInputRef.current.click(); }}
+                                            onDrop={(e) => { e.preventDefault(); handleGallerySelect(e.dataTransfer.files); }}
+                                            onDragOver={(e) => e.preventDefault()}
+                                            className={`mt-2 flex items-center justify-center flex-col gap-2 border-2 border-dashed rounded-lg p-4 cursor-pointer transition ${galleryPreviews.length === 0 ? 'border-gray-200 bg-gray-50 hover:border-indigo-400' : 'border-gray-200 bg-white'}`}
+                                        >
+                                            {galleryPreviews.length === 0 ? (
+                                                <>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M16 3v4M8 3v4m-6 8h20" />
+                                                    </svg>
+                                                    <div className="text-sm text-gray-600 ">Click or drag images here</div>
+                                                    <div className="text-xs text-gray-400">PNG, JPG, GIF — multiple files supported</div>
+                                                </>
+                                            ) : (
+                                                <div className="w-full">
+                                                    <div className="grid grid-cols-3 gap-3">
+                                                        {galleryPreviews.map((p, idx) => (
+                                                            <div key={p.url + idx} className="relative border rounded overflow-hidden">
+                                                                <img src={p.url} alt={p.name} className="h-24 w-full object-cover" />
+                                                                <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveGallery(idx); }} className="absolute top-1 right-1 bg-white rounded-full p-1 text-red-600">×</button>
+                                                                <div className="p-1 text-xs text-gray-600">{p.name}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <div className="mt-2 flex gap-2">
+                                                        <button type="button" onClick={(e) => { e.stopPropagation(); galleryInputRef.current && galleryInputRef.current.click(); }} className="text-sm px-2 py-1 rounded border bg-white">Add more</button>
+                                                        <button type="button" onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            // remove newly added previews and files but keep existing ones
+                                                            setGalleryFiles([]);
+                                                            setGalleryPreviews((prev) => prev.filter((p) => p.isExisting));
+                                                            if (galleryInputRef.current) galleryInputRef.current.value = '';
+                                                        }} className="text-sm px-2 py-1 rounded border bg-red-50 text-red-700">Remove new</button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </Dialog>
                             {loadingBlogs ? (
                                 <div className="space-y-3">
                                     {Array.from({ length: rowsPerPage || 6 }).map((_, i) => (

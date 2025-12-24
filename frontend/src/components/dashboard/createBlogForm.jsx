@@ -26,9 +26,7 @@ export default function CreateBlogForm({ onCreated, initial }) {
   const [tagInput, setTagInput] = useState('');
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [galleryFiles, setGalleryFiles] = useState([]);
-  const [galleryPreviews, setGalleryPreviews] = useState([]); // { url, name, size, isExisting }
-  const galleryInputRef = useRef(null);
+  
   const [published, setPublished] = useState(true);
   const fileInputRef = useRef(null);
   const [categories, setCategories] = useState([]);
@@ -37,6 +35,7 @@ export default function CreateBlogForm({ onCreated, initial }) {
   const [autoSlug, setAutoSlug] = useState(true);
   const [errors, setErrors] = useState({});
   const isEdit = !!(initial && (initial._id || initial.slug));
+  const maxUploadSize = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE || '10485760', 10); // bytes
 
   // Populate form when editing
   useEffect(() => {
@@ -54,19 +53,7 @@ export default function CreateBlogForm({ onCreated, initial }) {
         try { URL.revokeObjectURL(imagePreview); } catch (e) { }
         setImagePreview(null);
       }
-      // revoke and clear any gallery previews (newly-added object URLs)
-      try {
-        if (galleryPreviews && galleryPreviews.length) {
-          galleryPreviews.forEach((p) => {
-            if (p && !p.isExisting && p.url) {
-              try { URL.revokeObjectURL(p.url); } catch (e) { }
-            }
-          });
-        }
-      } catch (e) { }
-      setGalleryPreviews([]);
-      setGalleryFiles([]);
-      if (galleryInputRef.current) galleryInputRef.current.value = '';
+    
       return;
     }
 
@@ -89,19 +76,7 @@ export default function CreateBlogForm({ onCreated, initial }) {
       const imageUrl = /^https?:\/\//i.test(initial.image) ? initial.image : `${base}${initial.image.startsWith('/') ? '' : '/'}${initial.image}`;
       setImagePreview(imageUrl);
     }
-    // populate gallery when editing
-    if (initial.gallery) {
-      let g = initial.gallery;
-      if (!Array.isArray(g)) g = String(g).split(/\s*,\s*/).filter(Boolean);
-      const base = process.env.NEXT_PUBLIC_API_URL || '';
-      const previews = g.map((it) => {
-        const url = /^https?:\/\//i.test(it) ? it : `${base}${it.startsWith('/') ? '' : '/'}${it}`;
-        return { url, name: url.split('/').pop(), size: 0, isExisting: true };
-      });
-      setGalleryPreviews(previews);
-    } else {
-      setGalleryPreviews([]);
-    }
+    // gallery is managed from the dashboard list; no gallery state in create form
   }, [initial]);
 
   useEffect(() => {
@@ -146,6 +121,12 @@ export default function CreateBlogForm({ onCreated, initial }) {
   function handleFileSelect(files) {
     const f = files && files[0];
     if (f) {
+      if (f.size > maxUploadSize) {
+        const msg = `Image is too large (max ${formatBytes(maxUploadSize)})`;
+        setErrors((prev) => ({ ...prev, image: msg }));
+        if (toast && toast.current) toast.current.show({ severity: 'error', summary: 'File too large', detail: msg, life: 5000 });
+        return;
+      }
       setImage(f);
       if (imagePreview) URL.revokeObjectURL(imagePreview);
       setImagePreview(URL.createObjectURL(f));
@@ -157,33 +138,7 @@ export default function CreateBlogForm({ onCreated, initial }) {
     }
   }
 
-  function handleGallerySelect(files) {
-    if (!files) return;
-    const list = Array.from(files);
-    const newPreviews = list.map((f) => ({ url: URL.createObjectURL(f), name: f.name, size: f.size, isExisting: false }));
-    setGalleryFiles((prev) => [...prev, ...list]);
-    setGalleryPreviews((prev) => [...prev, ...newPreviews]);
-    // clear gallery-related error
-    setErrors((prev) => ({ ...prev, gallery: undefined }));
-  }
-
-  function handleRemoveGallery(index) {
-    // if the item is a newly added file, remove from galleryFiles and revoke url
-    setGalleryPreviews((prev) => {
-      const item = prev[index];
-      if (item && !item.isExisting && item.url) {
-        try { URL.revokeObjectURL(item.url); } catch (e) {}
-      }
-      const next = prev.slice(); next.splice(index, 1); return next;
-    });
-    setGalleryFiles((prev) => {
-      // remove corresponding file by matching name and size for newly added items
-      const next = prev.slice();
-      const idx = next.findIndex((f) => f && f.name === galleryPreviews[index]?.name && f.size === galleryPreviews[index]?.size);
-      if (idx >= 0) next.splice(idx, 1);
-      return next;
-    });
-  }
+  
 
   function handleRemoveImage() {
     setImage(null);
@@ -210,15 +165,7 @@ export default function CreateBlogForm({ onCreated, initial }) {
       if (tags && tags.length) form.append('tags', JSON.stringify(tags));
       form.append('published', String(published));
       if (image) form.append('image', image);
-      // append new gallery files
-      if (galleryFiles && galleryFiles.length) {
-        galleryFiles.forEach((f) => form.append('gallery', f));
-      }
-      // include existing gallery URLs so backend can preserve them when editing
-      if (isEdit) {
-        const existing = galleryPreviews.filter((p) => p.isExisting).map((p) => p.url);
-        if (existing && existing.length) form.append('existingGallery', JSON.stringify(existing));
-      }
+      // gallery is managed separately in the dashboard; do not append gallery files here
       const headers = {};
       // Attach Authorization header when a token is available (login stored it in localStorage)
       try {
@@ -253,48 +200,21 @@ export default function CreateBlogForm({ onCreated, initial }) {
       // clear or refresh form state after success
       setTimeout(() => {
         try {
-          // Revoke and clear any newly added gallery preview URLs
-          if (galleryPreviews && galleryPreviews.length) {
-            galleryPreviews.forEach((p) => {
-              if (p && !p.isExisting && p.url) {
-                try { URL.revokeObjectURL(p.url); } catch (e) { }
-              }
-            });
+          if (imagePreview && image && image.preview) {
+            try { URL.revokeObjectURL(imagePreview); } catch (e) { }
           }
-        } catch (e) { }
+        } catch (e) {}
 
         if (!isEdit) {
-          // on create: clear entire form including gallery previews/files
+          // on create: clear entire form
           setTitle('');
           setSlug('');
           setExcerpt('');
           setContent('');
           setImage(null);
           setTags([]);
-          if (imagePreview && image && image.preview) {
-            try { URL.revokeObjectURL(imagePreview); } catch (e) { }
-            setImagePreview(null);
-          }
-          setGalleryPreviews([]);
-          setGalleryFiles([]);
-          if (galleryInputRef.current) galleryInputRef.current.value = '';
           if (fileInputRef.current) fileInputRef.current.value = '';
           setCategory('');
-        } else {
-          // on update: clear newly added files and update previews from server response when available
-          setGalleryFiles([]);
-          if (data && Array.isArray(data.gallery)) {
-            const base = process.env.NEXT_PUBLIC_API_URL || '';
-            const previews = data.gallery.map((it) => {
-              const url = /^https?:\/\//i.test(it) ? it : `${base}${it.startsWith('/') ? '' : '/'}${it}`;
-              return { url, name: url.split('/').pop(), size: 0, isExisting: true };
-            });
-            setGalleryPreviews(previews);
-          } else {
-            // if backend didn't return gallery, keep existing ones and remove newly added
-            setGalleryPreviews((prev) => prev.filter((p) => p && p.isExisting));
-          }
-          if (galleryInputRef.current) galleryInputRef.current.value = '';
         }
 
         setStatus(null);
@@ -427,63 +347,7 @@ export default function CreateBlogForm({ onCreated, initial }) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-700 ">Gallery images</label>
-            <div className="mt-2">
-              <input
-                ref={galleryInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(ev) => handleGallerySelect(ev?.target?.files)}
-                className="hidden"
-                aria-hidden="true"
-              />
-
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => galleryInputRef.current && galleryInputRef.current.click()}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') galleryInputRef.current && galleryInputRef.current.click(); }}
-                onDrop={(e) => { e.preventDefault(); handleGallerySelect(e.dataTransfer.files); }}
-                onDragOver={(e) => e.preventDefault()}
-                className={`mt-2 flex items-center justify-center flex-col gap-2 border-2 border-dashed rounded-lg p-4 cursor-pointer transition ${errors.gallery ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50 hover:border-indigo-400'}`}
-              >
-                {galleryPreviews.length === 0 ? (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M16 3v4M8 3v4m-6 8h20" />
-                    </svg>
-                    <div className="text-sm text-gray-600 ">Click or drag images here</div>
-                    <div className="text-xs text-gray-400">PNG, JPG, GIF — multiple files supported</div>
-                  </>
-                ) : (
-                  <div className="w-full">
-                    <div className="grid grid-cols-3 gap-3">
-                      {galleryPreviews.map((p, idx) => (
-                        <div key={p.url + idx} className="relative border rounded overflow-hidden">
-                          <img src={p.url} alt={p.name} className="h-24 w-full object-cover" />
-                          <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveGallery(idx); }} className="absolute top-1 right-1 bg-white rounded-full p-1 text-red-600">×</button>
-                          <div className="p-1 text-xs text-gray-600">{p.name}</div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-2 flex gap-2">
-                      <button type="button" onClick={(e) => { e.stopPropagation(); galleryInputRef.current && galleryInputRef.current.click(); }} className="text-sm px-2 py-1 rounded border bg-white">Add more</button>
-                      <button type="button" onClick={(e) => { e.stopPropagation();
-                        // remove newly added previews and files but keep existing ones
-                        setGalleryFiles([]);
-                        setGalleryPreviews((prev) => prev.filter((p) => p.isExisting));
-                        if (galleryInputRef.current) galleryInputRef.current.value = '';
-                      }} className="text-sm px-2 py-1 rounded border bg-red-50 text-red-700">Remove new</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {errors.gallery && <p className="mt-1 text-xs text-red-600">{errors.gallery}</p>}
-            </div>
-          </div>
+          {/* Gallery uploads moved to dashboard list page */}
 
           <div>
             <label className="block text-xs font-medium text-gray-700 ">Content</label>
@@ -525,33 +389,12 @@ export default function CreateBlogForm({ onCreated, initial }) {
                 } else {
                   if (imagePreview) { URL.revokeObjectURL(imagePreview); setImagePreview(null); }
                 }
-                // restore gallery previews from initial
-                if (initial.gallery) {
-                  let g = initial.gallery;
-                  if (!Array.isArray(g)) g = String(g).split(/\s*,\s*/).filter(Boolean);
-                  const base = process.env.NEXT_PUBLIC_API_URL || '';
-                  const previews = g.map((it) => {
-                    const url = /^https?:\/\//i.test(it) ? it : `${base}${it.startsWith('/') ? '' : '/'}${it}`;
-                    return { url, name: url.split('/').pop(), size: 0, isExisting: true };
-                  });
-                  setGalleryPreviews(previews);
-                  setGalleryFiles([]);
-                } else {
-                  // clear gallery previews
-                  galleryPreviews.forEach((p) => { if (p && !p.isExisting && p.url) try { URL.revokeObjectURL(p.url); } catch (e) {} });
-                  setGalleryPreviews([]);
-                  setGalleryFiles([]);
-                }
                 if (fileInputRef.current) fileInputRef.current.value = '';
               } else {
                 setTitle(''); setSlug(''); setExcerpt(''); setContent('');
                 setStatus(null); setErrors({}); setImage(null);
                 setPublished(true);
                 if (imagePreview) { URL.revokeObjectURL(imagePreview); setImagePreview(null); }
-                // clear gallery previews and revoke generated urls
-                galleryPreviews.forEach((p) => { if (p && !p.isExisting && p.url) try { URL.revokeObjectURL(p.url); } catch (e) {} });
-                setGalleryPreviews([]);
-                setGalleryFiles([]);
                 if (fileInputRef.current) fileInputRef.current.value = '';
               }
             }} className="px-3 py-2 rounded-md border bg-white text-sm">{isEdit ? 'Cancel' : 'Reset'}</button>
