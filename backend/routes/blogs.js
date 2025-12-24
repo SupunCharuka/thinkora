@@ -373,51 +373,55 @@ router.put('/:id', authMiddleware, upload.fields([{ name: 'image', maxCount: 1 }
       blog.image = `/uploads/blogs/${imageFile.filename}`;
     }
 
-    // handle gallery updates: existingGallery (JSON array) + newly uploaded galleryFiles
+    // handle gallery updates ONLY when the client explicitly provides an `existingGallery` field
+    // or when new gallery files are uploaded. If neither is present, leave `blog.gallery` unchanged.
     try {
-      const rawExisting = req.body && req.body.existingGallery ? req.body.existingGallery : null;
-      let keep = [];
-      if (rawExisting) {
-        if (typeof rawExisting === 'string') {
-          try { keep = JSON.parse(rawExisting); } catch (e) { keep = String(rawExisting).split(/\s*,\s*/).filter(Boolean); }
-        } else if (Array.isArray(rawExisting)) keep = rawExisting;
-      }
-      // normalize kept paths to server-relative (/uploads/...)
-      const normalize = (u) => {
-        if (!u) return null;
-        try {
-          if (/^https?:\/\//i.test(u)) {
-            const idx = u.indexOf('/uploads/');
-            if (idx >= 0) return u.slice(idx);
-            return u;
-          }
-          return u;
-        } catch (e) { return u; }
-      };
-      const keptPaths = keep.map(normalize).filter(Boolean);
-
-      // delete any old gallery files that are no longer kept
-      const prevGallery = Array.isArray(blog.gallery) ? blog.gallery : [];
-      for (const oldPath of prevGallery) {
-        if (!keptPaths.includes(oldPath)) {
+      const hasExistingField = req.body && Object.prototype.hasOwnProperty.call(req.body, 'existingGallery');
+      if (hasExistingField || (galleryFiles && galleryFiles.length)) {
+        const rawExisting = req.body && req.body.existingGallery ? req.body.existingGallery : null;
+        let keep = [];
+        if (rawExisting) {
+          if (typeof rawExisting === 'string') {
+            try { keep = JSON.parse(rawExisting); } catch (e) { keep = String(rawExisting).split(/\s*,\s*/).filter(Boolean); }
+          } else if (Array.isArray(rawExisting)) keep = rawExisting;
+        }
+        // normalize kept paths to server-relative (/uploads/...)
+        const normalize = (u) => {
+          if (!u) return null;
           try {
-            const p = oldPath.replace(/^\/+/, '');
-            const __filename = fileURLToPath(import.meta.url);
-            const __dirname = path.dirname(__filename);
-            const disk = path.join(__dirname, '..', p);
-            if (fs.existsSync(disk)) fs.unlinkSync(disk);
-          } catch (e) {
-            console.warn('Failed to remove old gallery file', oldPath, e);
+            if (/^https?:\/\//i.test(u)) {
+              const idx = u.indexOf('/uploads/');
+              if (idx >= 0) return u.slice(idx);
+              return u;
+            }
+            return u;
+          } catch (e) { return u; }
+        };
+        const keptPaths = keep.map(normalize).filter(Boolean);
+
+        // delete any old gallery files that are no longer kept
+        const prevGallery = Array.isArray(blog.gallery) ? blog.gallery : [];
+        for (const oldPath of prevGallery) {
+          if (!keptPaths.includes(oldPath)) {
+            try {
+              const p = oldPath.replace(/^\/+/, '');
+              const __filename = fileURLToPath(import.meta.url);
+              const __dirname = path.dirname(__filename);
+              const disk = path.join(__dirname, '..', p);
+              if (fs.existsSync(disk)) fs.unlinkSync(disk);
+            } catch (e) {
+              console.warn('Failed to remove old gallery file', oldPath, e);
+            }
           }
         }
-      }
 
-      // build final gallery list: keptPaths + newly uploaded files
-      const newGallery = keptPaths.slice();
-      if (galleryFiles && galleryFiles.length) {
-        for (const f of galleryFiles) newGallery.push(`/uploads/blogs/gallery/${f.filename}`);
+        // build final gallery list: keptPaths + newly uploaded files
+        const newGallery = keptPaths.slice();
+        if (galleryFiles && galleryFiles.length) {
+          for (const f of galleryFiles) newGallery.push(`/uploads/blogs/gallery/${f.filename}`);
+        }
+        blog.gallery = newGallery;
       }
-      blog.gallery = newGallery;
     } catch (e) {
       console.warn('Failed to process gallery update', e);
     }

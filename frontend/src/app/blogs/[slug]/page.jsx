@@ -388,7 +388,7 @@ export default function blogPage({ params }) {
               <div className="mt-3 sm:mt-0 text-sm text-slate-500">&nbsp;</div>
             </div>
 
-            <h1 itemProp="headline" className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-4">
+            <h1 itemProp="headline" className="text-3xl sm:text-4xl md:text-4xl font-bold tracking-tight text-slate-900 leading-tight mb-4">
               {blog.title}
             </h1>
 
@@ -397,7 +397,7 @@ export default function blogPage({ params }) {
 
                 <div className="text-sm text-slate-600">
                   <div itemProp="author" itemScope itemType="https://schema.org/Person">
-                    <div className="font-semibold text-slate-800" itemProp="name">By {blog.author && blog.author.name ? blog.author.name : 'Author'}</div>
+                    <div className="font-semibold text-slate-800 hidden" itemProp="name">By {blog.author && blog.author.name ? blog.author.name : 'Author'}</div>
                   </div>
                   <div className="text-xs mt-0.5"><time itemProp="datePublished" dateTime={blog.createdAt}>{formatDate(blog.createdAt)}</time> · <span itemProp="timeRequired">{calcReadingTime(blog.content)}</span></div>
                 </div>
