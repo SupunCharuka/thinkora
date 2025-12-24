@@ -1,6 +1,6 @@
 export default function Head() {
   const siteUrl = 'https://thinkora.me';
-  const title = 'Blogs — thinkora';
+  const title = 'Thinkora - Blogs';
   const description = 'Browse articles, tutorials and stories about technology, travel, music and lifestyle on thinkora.';
   const jsonLd = {
     "@context": "https://schema.org",

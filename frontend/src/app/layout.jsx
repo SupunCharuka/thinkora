@@ -17,17 +17,17 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: {
-    default: 'thinkora — Thoughts on tech, travel & life',
+    default: 'Thinkora — Thoughts on Tech, Travel & Lifestyle',
     template: '%s | thinkora'
   },
-  description: 'thinkora publishes articles, tutorials and stories about technology, travel, and everyday life. Read practical guides and thoughtful commentary to sharpen your skills and perspective.',
+  description: 'Thinkora publishes articles, tutorials and stories about technology, travel, and everyday life. Read practical guides and thoughtful commentary to sharpen your skills and perspective.',
   keywords: [
     'thinkora', 'blog', 'technology', 'design', 'lifestyle', 'tutorials', 'articles', 'travel', 'music', 'news'
   ],
   authors: [{ name: 'thinkora' }],
   openGraph: {
-    title: 'thinkora — Thoughts on tech, travel & life',
-    description: 'thinkora publishes articles, tutorials and stories about technology, travel, and everyday life.',
+    title: 'Thinkora — Thoughts on Tech, Travel & Lifestyle',
+    description: 'Thinkora publishes articles, tutorials and stories about technology, travel, and everyday life.',
     url: 'https://thinkora.me',
     siteName: 'thinkora',
     images: [

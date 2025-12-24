@@ -373,7 +373,7 @@ export default function blogPage({ params }) {
           {blog?.updatedAt && <meta itemProp="dateModified" content={blog.updatedAt} />}
           <meta itemProp="mainEntityOfPage" content={`https://thinkora.me/blogs/${slug}`} />
 
-          <header className="mb-10 relative">
+          <header className="mb-6 relative">
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
               <div>
@@ -388,7 +388,7 @@ export default function blogPage({ params }) {
               <div className="mt-3 sm:mt-0 text-sm text-slate-500">&nbsp;</div>
             </div>
 
-            <h1 itemProp="headline" className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-6">
+            <h1 itemProp="headline" className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-4">
               {blog.title}
             </h1>
 
@@ -421,7 +421,7 @@ export default function blogPage({ params }) {
 
           </header>
 
-          <figure className="mb-8">
+          <figure className="mb-6">
             <div className="relative w-full h-[220px] sm:h-[320px] md:h-[420px] lg:h-[520px] rounded-xl shadow-lg overflow-hidden mx-auto">
               <div
                 role="button"
@@ -647,21 +647,21 @@ export default function blogPage({ params }) {
         </div>,
         document.body
       ) : null}
-        {/* Hover preview portal */}
-        {typeof document !== 'undefined' && hoverPreview.visible ? createPortal(
-          <div
-            style={{ position: 'fixed', top: hoverPreview.top, left: hoverPreview.left, width: hoverPreview.width, maxWidth: '90vw', zIndex: 99999, transition: 'opacity 180ms ease' }}
-            className="rounded-lg overflow-hidden shadow-2xl bg-black/90 border border-white/10"
-            onMouseEnter={() => { /* keep preview visible when pointer moves into preview */ }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
-              <Image src={hoverPreview.src} alt={hoverPreview.alt || blog?.title || 'Preview'} fill className="object-contain bg-black" />
-            </div>
-            {/* removed title caption from hover preview per request */}
-          </div>,
-          document.body
-        ) : null}
+      {/* Hover preview portal */}
+      {typeof document !== 'undefined' && hoverPreview.visible ? createPortal(
+        <div
+          style={{ position: 'fixed', top: hoverPreview.top, left: hoverPreview.left, width: hoverPreview.width, maxWidth: '90vw', zIndex: 99999, transition: 'opacity 180ms ease' }}
+          className="rounded-lg overflow-hidden shadow-2xl bg-black/90 border border-white/10"
+          onMouseEnter={() => { /* keep preview visible when pointer moves into preview */ }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
+            <Image src={hoverPreview.src} alt={hoverPreview.alt || blog?.title || 'Preview'} fill className="object-contain bg-black" />
+          </div>
+          {/* removed title caption from hover preview per request */}
+        </div>,
+        document.body
+      ) : null}
     </section>
   )
 }

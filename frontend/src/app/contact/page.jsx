@@ -90,7 +90,7 @@ export default function ContactPage() {
                                 </div>
                                 <div className="w-1/2">
                                     <label className="block text-sm font-medium text-slate-700">Email</label>
-                                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black-500" placeholder="you@company.com" />
+                                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black-500" placeholder="you@email.com" />
                                 </div>
                             </div>
 
