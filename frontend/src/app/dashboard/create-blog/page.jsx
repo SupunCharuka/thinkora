@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import CreateBlogForm from '@/components/dashboard/createBlogForm';
 import useDashboardAuth from '@/hooks/useDashboardAuth';
 
@@ -8,18 +7,30 @@ export default function CreateBlogPage() {
   const { loading } = useDashboardAuth();
   const [initial, setInitial] = useState(null);
   const [editParam, setEditParam] = useState(null);
-  const searchParams = useSearchParams();
 
-  // react to search param changes (client navigation may keep the same page/component mounted)
+  // read search params from window.location (safe during prerender)
   useEffect(() => {
-    try {
-      const e = searchParams ? searchParams.get('edit') : null;
-      setEditParam(e);
-    } catch (err) {
-      // fallback: clear edit param
-      setEditParam(null);
+    function read() {
+      try {
+        const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        const e = params ? params.get('edit') : null;
+        setEditParam(e);
+      } catch (err) {
+        setEditParam(null);
+      }
     }
-  }, [searchParams]);
+
+    read();
+
+    // update on popstate (back/forward) and when the app pushes a new state
+    window.addEventListener('popstate', read);
+    // also listen for a custom event in case other code dispatches it after pushState
+    window.addEventListener('pushstate', read);
+    return () => {
+      window.removeEventListener('popstate', read);
+      window.removeEventListener('pushstate', read);
+    };
+  }, []);
 
   useEffect(() => {
     if (!editParam) {

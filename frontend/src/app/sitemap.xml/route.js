@@ -11,7 +11,9 @@ export async function GET() {
     ];
 
     try {
-        const res = await fetch(`${base}/api/v1/blogs?limit=1000`, { cache: 'no-store' });
+        // Use ISR so Next can prerender the sitemap and revalidate periodically.
+        // Set revalidate to an appropriate interval (seconds). 3600 = 1 hour.
+        const res = await fetch(`${base}/api/v1/blogs?limit=1000`, { next: { revalidate: 3600 } });
         if (res.ok) {
             const data = await res.json();
             const mapped = (data || []).map((b) => {
