@@ -30,6 +30,7 @@ export default function ViewBlogsPage() {
     const [galleryFiles, setGalleryFiles] = useState([]);
     const [galleryPreviews, setGalleryPreviews] = useState([]); // { url, name, size, isExisting }
     const [existingGalleryPaths, setExistingGalleryPaths] = useState([]);
+    const [isUploadingGallery, setIsUploadingGallery] = useState(false);
     const maxUploadSize = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE || '10485760', 10);
     const [rowsPerPage, setRowsPerPage] = useState(9);
     const [filters, setFilters] = useState({
@@ -407,9 +408,9 @@ export default function ViewBlogsPage() {
                                                     setGalleryPreviews([]);
                                                     setExistingGalleryPaths([]);
                                                 }} className="px-3 py-1 rounded border bg-white text-sm">Cancel</button>
-                                                <button type="button" onClick={async () => {
-                                                    // perform upload: send existingGallery + new files
+                                                <button type="button" disabled={isUploadingGallery} onClick={async () => {
                                                     if (!uploadingGalleryFor) return;
+                                                    setIsUploadingGallery(true);
                                                     try {
                                                         const form = new FormData();
                                                         if (existingGalleryPaths && existingGalleryPaths.length) form.append('existingGallery', JSON.stringify(existingGalleryPaths));
@@ -436,8 +437,17 @@ export default function ViewBlogsPage() {
                                                     } catch (err) {
                                                         console.error('Gallery upload failed', err);
                                                         toast.current && toast.current.show({ severity: 'error', summary: 'Upload failed', detail: 'Network error', life: 5000 });
+                                                    } finally {
+                                                        setIsUploadingGallery(false);
                                                     }
-                                                }} className="px-3 py-1 rounded bg-indigo-600 text-white text-sm">Upload</button>
+                                                }} className={`${isUploadingGallery ? 'px-3 py-1 rounded bg-indigo-600 text-white text-sm opacity-75 cursor-wait animate-pulse' : 'px-3 py-1 rounded bg-indigo-600 text-white text-sm transform transition-transform duration-200 hover:scale-105 active:scale-95'}`}>
+                                                    {isUploadingGallery ? (
+                                                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                                        </svg>
+                                                    ) : 'Upload'}
+                                                </button>
                                             </div>
                                         </div>
 
