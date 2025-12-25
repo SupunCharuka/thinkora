@@ -40,9 +40,31 @@ try {
 }
 app.use('/uploads', express.static(uploadsRoot));
 
-// CORS configuration
+// CORS configuration — allow both www and non-www frontend origins (and localhost for dev)
+const getAllowedOrigins = () => {
+  const list = new Set();
+  if (FRONTEND_URL) {
+    const normalized = FRONTEND_URL.replace(/\/$/, '');
+    list.add(normalized);
+    // add www variant if it isn't already present
+    list.add(normalized.replace(/^(https?:\/\/)(?!www\.)/, '$1www.'));
+  }
+  // common dev origins
+  list.add('http://localhost:3000');
+  list.add('http://127.0.0.1:3000');
+  return list;
+};
+
+const allowedOrigins = getAllowedOrigins();
+
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: (origin, callback) => {
+    // allow requests with no origin (e.g., curl, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.has(origin)) return callback(null, true);
+    console.warn('Blocked CORS origin:', origin);
+    callback(new Error('Not allowed by CORS'));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
