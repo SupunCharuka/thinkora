@@ -58,15 +58,22 @@ router.put('/profile', authMiddleware, async (req, res) => {
     const userId = req.userId || (req.user && req.user.id);
     if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
-    const { name, email, bio } = req.body || {};
+    const { name, email, bio, currentPasswordForEmail } = req.body || {};
     if (!name || !email) return res.status(400).json({ message: 'Name and email are required' });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const emailChanged = (typeof email === 'string' && email !== user.email);
+    if (emailChanged) {
+      if (!currentPasswordForEmail) return res.status(401).json({ message: 'Current password is required to change email' });
+      const match = await bcrypt.compare(currentPasswordForEmail, user.password);
+      if (!match) return res.status(401).json({ message: 'Current password is incorrect' });
+    }
 
     // Check if email is used by another user
     const existing = await User.findOne({ email, _id: { $ne: userId } });
     if (existing) return res.status(409).json({ message: 'Email already in use' });
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
 
     user.name = name;
     user.email = email;

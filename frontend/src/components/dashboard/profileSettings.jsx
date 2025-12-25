@@ -11,6 +11,8 @@ export default function ProfileSettings() {
   const [errors, setErrors] = useState({});
   const [original, setOriginal] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  // password required when changing email
+  const [emailPassword, setEmailPassword] = useState('');
   // password change state
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -68,6 +70,8 @@ export default function ProfileSettings() {
     if (!name || !name.toString().trim()) { e.name = 'Name is required'; }
     if (!email || !email.toString().trim()) { e.email = 'Email is required'; }
     else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { e.email = 'Enter a valid email'; }
+    const emailChanged = !original || email !== original.email;
+    if (emailChanged && !emailPassword) { e.emailPassword = 'Enter your current password to change email'; }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -86,11 +90,14 @@ export default function ProfileSettings() {
       const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers.Authorization = `Bearer ${token}`;
+      const bodyObj = { name: name.trim(), email: email.trim(), bio };
+      const emailChanged = !original || email !== original.email;
+      if (emailChanged) bodyObj.currentPasswordForEmail = emailPassword;
       const res = await fetch('/api/v1/auth/profile', {
         method: 'PUT',
         credentials: 'include',
         headers,
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), bio }),
+        body: JSON.stringify(bodyObj),
       });
 
       const data = await res.json();
@@ -98,6 +105,8 @@ export default function ProfileSettings() {
         // map server validation to field errors when possible
         if (res.status === 409) {
           setErrors({ email: data?.message || 'Email already in use' });
+        } else if (res.status === 401) {
+          setErrors({ emailPassword: data?.message || 'Current password is incorrect' });
         } else {
           setStatus(data?.message || 'Failed to save profile');
         }
@@ -108,6 +117,7 @@ export default function ProfileSettings() {
         if (data.user) {
           localStorage.setItem('user', JSON.stringify(data.user));
           setOriginal({ name: data.user.name || '', email: data.user.email || '', bio: data.user.bio || '' });
+          setEmailPassword('');
         } else {
           const raw = localStorage.getItem('user');
           if (raw) {
@@ -115,6 +125,7 @@ export default function ProfileSettings() {
             const merged = { ...u, name: name.trim(), email: email.trim(), bio };
             localStorage.setItem('user', JSON.stringify(merged));
             setOriginal({ name: merged.name, email: merged.email, bio: merged.bio });
+            setEmailPassword('');
           }
         }
         try { window.dispatchEvent(new Event('authChange')); } catch (e) {}
@@ -270,6 +281,19 @@ export default function ProfileSettings() {
                 <label className="block text-sm font-medium text-gray-700">Email</label>
                 <input value={email} onChange={(e)=>{ setEmail(e.target.value); setErrors(prev=>({ ...prev, email: undefined })); }} className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.email ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`} placeholder="you@example.com" aria-invalid={errors.email ? true : false} aria-describedby={errors.email ? 'error-email' : undefined} />
                 {errors.email && <p id="error-email" className="mt-1 text-xs text-red-600">{errors.email}</p>}
+                {(!original || email !== original.email) && (
+                  <>
+                    <input
+                      aria-invalid={errors.emailPassword ? true : false}
+                      type="password"
+                      value={emailPassword}
+                      onChange={(e)=>{ setEmailPassword(e.target.value); setErrors(prev=>({ ...prev, emailPassword: undefined })); }}
+                      placeholder="Current password to change email"
+                      className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.emailPassword ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`}
+                    />
+                    {errors.emailPassword && <p className="mt-1 text-xs text-red-600">{errors.emailPassword}</p>}
+                  </>
+                )}
               </div>
 
               <div className="md:col-span-2">
