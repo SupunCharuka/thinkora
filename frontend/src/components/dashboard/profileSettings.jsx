@@ -1,5 +1,10 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import 'primereact/resources/themes/saga-blue/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
+import { Dialog } from 'primereact/dialog';
+import { Button } from 'primereact/button';
 
 export default function ProfileSettings() {
   const [name, setName] = useState('');
@@ -19,6 +24,13 @@ export default function ProfileSettings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [pwSaving, setPwSaving] = useState(false);
   const [pwStatus, setPwStatus] = useState(null);
+  // sessions (logged devices)
+  const [sessions, setSessions] = useState([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionsError, setSessionsError] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmSid, setConfirmSid] = useState(null);
+  const [confirmLabel, setConfirmLabel] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -62,8 +74,60 @@ export default function ProfileSettings() {
       }
     }
     load();
+    loadSessions();
     return () => { mounted = false; };
   }, []);
+
+  function parseJwt(token) {
+    try {
+      const p = token.split('.')[1];
+      const json = JSON.parse(atob(p.replace(/-/g, '+').replace(/_/g, '/')));
+      return json;
+    } catch (e) { return null; }
+  }
+
+  async function loadSessions() {
+    setSessionsLoading(true);
+    setSessionsError(null);
+    try {
+      const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+      const headers = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const res = await fetch('/api/v1/auth/sessions', { credentials: 'include', headers });
+      if (!res.ok) throw new Error((await res.json())?.message || 'Failed to load sessions');
+      const data = await res.json();
+      setSessions(data.sessions || []);
+    } catch (err) {
+      setSessionsError(err?.message || 'Network error');
+    } finally {
+      setSessionsLoading(false);
+    }
+  }
+
+  async function revokeSession(sid) {
+    try {
+      const token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const res = await fetch(`/api/v1/auth/sessions/${sid}`, { method: 'DELETE', credentials: 'include', headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || 'Failed to revoke session');
+      // if revoked current session, clear token and reload
+      const payload = parseJwt(token || '') || {};
+      if (payload && payload.sid === sid) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        try { window.dispatchEvent(new Event('authChange')); } catch(e){}
+        // reload to reflect logged-out state
+        window.location.reload();
+        return;
+      }
+      // otherwise refresh list
+      loadSessions();
+    } catch (err) {
+      alert(err?.message || 'Failed to revoke session');
+    }
+  }
 
   function validate() {
     const e = {};
@@ -311,6 +375,34 @@ export default function ProfileSettings() {
             </div>
             {status && <div className="mt-3 text-sm text-green-600">{status}</div>}
           </form>
+          <div className="mt-4 bg-white p-6 shadow rounded-lg">
+            <h4 className="text-sm font-medium text-gray-800">Logged devices</h4>
+            <p className="text-xs text-gray-500 mb-3">Active sessions for your account. Revoke any unknown devices.</p>
+            {sessionsLoading && <div className="text-sm text-gray-600">Loading...</div>}
+            {sessionsError && <div className="text-sm text-red-600">{sessionsError}</div>}
+            {!sessionsLoading && sessions && sessions.length === 0 && <div className="text-sm text-gray-600">No active sessions found.</div>}
+            <ul className="mt-2 space-y-2">
+              {sessions.map(s => (
+                <li key={s.sid} className="flex items-center justify-between border p-2 rounded">
+                  <div className="text-xs">
+                    <div className="font-medium">{s.userAgent || 'Unknown device'}</div>
+                    <div className="text-gray-500">{s.ip || ''} • Last seen: {new Date(s.lastSeen).toLocaleString()}</div>
+                  </div>
+                  <div className="ml-4">
+                    <button onClick={()=>{ setConfirmSid(s.sid); setConfirmLabel(s.userAgent || 'Unknown device'); setConfirmOpen(true); }} className="px-3 py-1 bg-red-600 text-white rounded">Sign out</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Dialog header="Sign out device" visible={confirmOpen} style={{ width: '350px' }} onHide={() => setConfirmOpen(false)} footer={(
+            <div className="flex gap-2">
+              <Button label="Cancel" onClick={() => setConfirmOpen(false)} className="p-button-text" />
+              <Button label="Sign out" className="p-button-danger" onClick={() => { setConfirmOpen(false); revokeSession(confirmSid); }} />
+            </div>
+          )}>
+            <p>Are you sure you want to sign out the device: <strong>{confirmLabel}</strong> ?</p>
+          </Dialog>
         </section>
       </div>
     </div>

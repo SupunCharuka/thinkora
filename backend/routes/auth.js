@@ -1,7 +1,9 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import User from '../models/User.js';
+import Session from '../models/Session.js';
 import { JWT_SECRET } from '../config.js';
 import authMiddleware from '../middleware/auth.js';
 
@@ -43,7 +45,18 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+    // create a session id and include in token so sessions can be tracked/revoked
+    const sid = crypto.randomBytes(16).toString('hex');
+    const token = jwt.sign({ id: user._id, sid }, JWT_SECRET, { expiresIn: '7d' });
+
+    // record session (best-effort)
+    try {
+      const ip = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || req.ip || '';
+      const userAgent = req.get('User-Agent') || '';
+      await Session.create({ user: user._id, sid, ip, userAgent });
+    } catch (e) {
+      console.error('Failed to create session record', e);
+    }
 
     return res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
@@ -135,4 +148,36 @@ router.put('/change-password', authMiddleware, async (req, res) => {
   }
 });
 
+// List sessions (devices) for current user
+router.get('/sessions', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId || (req.user && req.user.id);
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    const sessions = await Session.find({ user: userId }).select('sid ip userAgent createdAt lastSeen').sort({ lastSeen: -1 });
+    return res.json({ sessions });
+  } catch (err) {
+    console.error('Sessions fetch error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Revoke a session (logout a device)
+router.delete('/sessions/:sid', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId || (req.user && req.user.id);
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+    const { sid } = req.params || {};
+    if (!sid) return res.status(400).json({ message: 'Session id required' });
+
+    const deleted = await Session.findOneAndDelete({ sid, user: userId });
+    if (!deleted) return res.status(404).json({ message: 'Session not found' });
+    return res.json({ message: 'Session revoked' });
+  } catch (err) {
+    console.error('Session revoke error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 export default router;
+

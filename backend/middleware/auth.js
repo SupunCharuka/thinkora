@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config.js';
+import Session from '../models/Session.js';
 
 // Auth middleware: verifies JWT from Authorization header or cookies.
 // Attaches `req.user` (full payload) and `req.userId` for compatibility.
-export default function authMiddleware(req, res, next) {
+export default async function authMiddleware(req, res, next) {
   if (!JWT_SECRET) {
     console.error('JWT_SECRET is not configured');
     return res.status(500).json({ message: 'Server configuration error' });
@@ -36,6 +37,13 @@ export default function authMiddleware(req, res, next) {
     const payload = jwt.verify(token, JWT_SECRET);
     req.user = payload;
     if (payload && payload.id) req.userId = payload.id;
+    // update session lastSeen if sid provided (best-effort)
+    try {
+      if (payload && payload.sid) {
+        Session.findOneAndUpdate({ sid: payload.sid }, { $set: { lastSeen: new Date() } }).catch(()=>{});
+        req.sid = payload.sid;
+      }
+    } catch (e) {}
     return next();
   } catch (err) {
     if (err && err.name === 'TokenExpiredError') {
