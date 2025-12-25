@@ -117,7 +117,7 @@ export default function ProfileSettings() {
       if (payload && payload.sid === sid) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        try { window.dispatchEvent(new Event('authChange')); } catch(e){}
+        try { window.dispatchEvent(new Event('authChange')); } catch (e) { }
         // reload to reflect logged-out state
         window.location.reload();
         return;
@@ -192,12 +192,12 @@ export default function ProfileSettings() {
             setEmailPassword('');
           }
         }
-        try { window.dispatchEvent(new Event('authChange')); } catch (e) {}
+        try { window.dispatchEvent(new Event('authChange')); } catch (e) { }
       } catch (e) { /* ignore */ }
 
       setStatus(null);
       setSuccessMessage('Profile saved');
-      setTimeout(()=>setSuccessMessage(null),3000);
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Save profile error', err);
       setStatus(err?.message || 'Network error');
@@ -210,7 +210,7 @@ export default function ProfileSettings() {
     e && e.preventDefault && e.preventDefault();
     setPwStatus(null);
     // clear previous password-related field errors
-    setErrors(prev=>({ ...prev, currentPassword: undefined, newPassword: undefined, confirmPassword: undefined }));
+    setErrors(prev => ({ ...prev, currentPassword: undefined, newPassword: undefined, confirmPassword: undefined }));
 
     const pwErr = {};
     if (!currentPassword) pwErr.currentPassword = 'Current password is required';
@@ -218,7 +218,7 @@ export default function ProfileSettings() {
     else if (newPassword.length < 6) pwErr.newPassword = 'New password must be at least 6 characters';
     if (newPassword && confirmPassword && newPassword !== confirmPassword) pwErr.confirmPassword = 'Passwords do not match';
 
-    if (Object.keys(pwErr).length) { setErrors(prev=>({ ...prev, ...pwErr })); return; }
+    if (Object.keys(pwErr).length) { setErrors(prev => ({ ...prev, ...pwErr })); return; }
 
     setPwSaving(true);
     try {
@@ -234,20 +234,20 @@ export default function ProfileSettings() {
       const data = await res.json();
       if (!res.ok) {
         if (res.status === 401) {
-          setErrors(prev=>({ ...prev, currentPassword: data?.message || 'Current password is incorrect' }));
+          setErrors(prev => ({ ...prev, currentPassword: data?.message || 'Current password is incorrect' }));
         } else if (res.status === 400) {
           // server-side validation
-          setErrors(prev=>({ ...prev, newPassword: data?.message || 'Invalid password' }));
+          setErrors(prev => ({ ...prev, newPassword: data?.message || 'Invalid password' }));
         } else {
           setPwStatus(data?.message || 'Failed to change password');
         }
         return;
       }
 
-      setErrors(prev=>({ ...prev, currentPassword: undefined, newPassword: undefined, confirmPassword: undefined }));
+      setErrors(prev => ({ ...prev, currentPassword: undefined, newPassword: undefined, confirmPassword: undefined }));
       setPwStatus('Password updated');
       setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
-      setTimeout(()=>setPwStatus(null),3000);
+      setTimeout(() => setPwStatus(null), 3000);
     } catch (err) {
       console.error('Change password error', err);
       setPwStatus(err?.message || 'Network error');
@@ -258,16 +258,16 @@ export default function ProfileSettings() {
 
   if (loading) return <div className="p-6">Loading...</div>;
   // creative two-column layout: left avatar + password, right profile form
-  const initials = (name || '').split(' ').map(s => s[0]||'').join('').slice(0,2).toUpperCase() || 'U';
+  const initials = (name || '').split(' ').map(s => s[0] || '').join('').slice(0, 2).toUpperCase() || 'U';
   function pwStrengthLabel(pw) {
-    if (!pw) return { score:0, label:'Too short' };
+    if (!pw) return { score: 0, label: 'Too short' };
     let score = 0;
     if (pw.length >= 6) score++;
     if (/[A-Z]/.test(pw)) score++;
     if (/[0-9]/.test(pw)) score++;
     if (/[^A-Za-z0-9]/.test(pw)) score++;
-    const labels = ['Very weak','Weak','Fair','Good','Strong'];
-    return { score, label: labels[Math.min(score,4)] };
+    const labels = ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'];
+    return { score, label: labels[Math.min(score, 4)] };
   }
   const strength = pwStrengthLabel(newPassword);
 
@@ -290,7 +290,7 @@ export default function ProfileSettings() {
                 aria-invalid={errors.currentPassword ? true : false}
                 type="password"
                 value={currentPassword}
-                onChange={(e)=>{ setCurrentPassword(e.target.value); setErrors(prev=>({ ...prev, currentPassword: undefined })); }}
+                onChange={(e) => { setCurrentPassword(e.target.value); setErrors(prev => ({ ...prev, currentPassword: undefined })); }}
                 placeholder="Current password"
                 className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.currentPassword ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`}
               />
@@ -300,14 +300,14 @@ export default function ProfileSettings() {
                 aria-invalid={errors.newPassword ? true : false}
                 type="password"
                 value={newPassword}
-                onChange={(e)=>{ setNewPassword(e.target.value); setErrors(prev=>({ ...prev, newPassword: undefined })); }}
+                onChange={(e) => { setNewPassword(e.target.value); setErrors(prev => ({ ...prev, newPassword: undefined })); }}
                 placeholder="New password"
                 className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.newPassword ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`}
               />
               {errors.newPassword && <p className="mt-1 text-xs text-red-600">{errors.newPassword}</p>}
 
               <div className="w-full bg-gray-100 h-2 rounded overflow-hidden">
-                <div className={`h-2 bg-gradient-to-r from-red-500 to-green-500`} style={{ width: `${(strength.score/4)*100}%` }} />
+                <div className={`h-2 bg-gradient-to-r from-red-500 to-green-500`} style={{ width: `${(strength.score / 4) * 100}%` }} />
               </div>
               <div className="text-xs text-gray-600 flex items-center justify-between">
                 <span>{strength.label}</span>
@@ -318,7 +318,7 @@ export default function ProfileSettings() {
                 aria-invalid={errors.confirmPassword ? true : false}
                 type="password"
                 value={confirmPassword}
-                onChange={(e)=>{ setConfirmPassword(e.target.value); setErrors(prev=>({ ...prev, confirmPassword: undefined })); }}
+                onChange={(e) => { setConfirmPassword(e.target.value); setErrors(prev => ({ ...prev, confirmPassword: undefined })); }}
                 placeholder="Confirm new password"
                 className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.confirmPassword ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`}
               />
@@ -337,13 +337,13 @@ export default function ProfileSettings() {
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Full name</label>
-                  <input value={name} onChange={(e)=>{ setName(e.target.value); setErrors(prev=>({ ...prev, name: undefined })); }} className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.name ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`} placeholder="Your full name" aria-invalid={errors.name ? true : false} aria-describedby={errors.name ? 'error-name' : undefined} />
-                  {errors.name && <p id="error-name" className="mt-1 text-xs text-red-600">{errors.name}</p>}
+                <input value={name} onChange={(e) => { setName(e.target.value); setErrors(prev => ({ ...prev, name: undefined })); }} className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.name ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`} placeholder="Your full name" aria-invalid={errors.name ? true : false} aria-describedby={errors.name ? 'error-name' : undefined} />
+                {errors.name && <p id="error-name" className="mt-1 text-xs text-red-600">{errors.name}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">Email</label>
-                <input value={email} onChange={(e)=>{ setEmail(e.target.value); setErrors(prev=>({ ...prev, email: undefined })); }} className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.email ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`} placeholder="you@example.com" aria-invalid={errors.email ? true : false} aria-describedby={errors.email ? 'error-email' : undefined} />
+                <input value={email} onChange={(e) => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: undefined })); }} className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.email ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`} placeholder="you@example.com" aria-invalid={errors.email ? true : false} aria-describedby={errors.email ? 'error-email' : undefined} />
                 {errors.email && <p id="error-email" className="mt-1 text-xs text-red-600">{errors.email}</p>}
                 {(!original || email !== original.email) && (
                   <>
@@ -351,7 +351,7 @@ export default function ProfileSettings() {
                       aria-invalid={errors.emailPassword ? true : false}
                       type="password"
                       value={emailPassword}
-                      onChange={(e)=>{ setEmailPassword(e.target.value); setErrors(prev=>({ ...prev, emailPassword: undefined })); }}
+                      onChange={(e) => { setEmailPassword(e.target.value); setErrors(prev => ({ ...prev, emailPassword: undefined })); }}
                       placeholder="Current password to change email"
                       className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.emailPassword ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`}
                     />
@@ -362,7 +362,7 @@ export default function ProfileSettings() {
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700">Bio</label>
-                <textarea value={bio} onChange={(e)=>{ setBio(e.target.value); setErrors(prev=>({ ...prev, bio: undefined })); }} rows={4} className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.bio ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`} placeholder="Short bio for your profile" aria-invalid={errors.bio ? true : false} aria-describedby={errors.bio ? 'error-bio' : undefined} />
+                <textarea value={bio} onChange={(e) => { setBio(e.target.value); setErrors(prev => ({ ...prev, bio: undefined })); }} rows={4} className={`mt-2 block w-full rounded-md border px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 ${errors.bio ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-indigo-500'}`} placeholder="Short bio for your profile" aria-invalid={errors.bio ? true : false} aria-describedby={errors.bio ? 'error-bio' : undefined} />
                 {errors.bio && <p id="error-bio" className="mt-1 text-xs text-red-600">{errors.bio}</p>}
               </div>
             </div>
@@ -386,10 +386,13 @@ export default function ProfileSettings() {
                 <li key={s.sid} className="flex items-center justify-between border p-2 rounded">
                   <div className="text-xs">
                     <div className="font-medium">{s.userAgent || 'Unknown device'}</div>
-                    <div className="text-gray-500">{s.ip || ''} • Last seen: {new Date(s.lastSeen).toLocaleString()}</div>
+                    <div className="text-gray-500">Last seen: {new Date(s.lastSeen).toLocaleString()}</div>
                   </div>
                   <div className="ml-4">
-                    <button onClick={()=>{ setConfirmSid(s.sid); setConfirmLabel(s.userAgent || 'Unknown device'); setConfirmOpen(true); }} className="px-3 py-1 bg-red-600 text-white rounded">Sign out</button>
+                    <button onClick={() => { setConfirmSid(s.sid); setConfirmLabel(s.userAgent || 'Unknown device'); setConfirmOpen(true); }} className="px-3 py-2 cursor-pointer bg-red-600 text-white rounded flex items-center gap-2" title="Sign out">
+                      <i className="pi pi-sign-out" aria-hidden="true" />
+
+                    </button>
                   </div>
                 </li>
               ))}
