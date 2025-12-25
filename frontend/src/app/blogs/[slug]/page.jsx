@@ -157,6 +157,7 @@ export default function blogPage({ params }) {
   // Lightbox helpers
   const [galleryIndex, setGalleryIndex] = useState(-1)
   const [hoverPreview, setHoverPreview] = useState({ visible: false, src: '', alt: '', index: -1, top: 0, left: 0, width: 0 })
+  const [hoverSupported, setHoverSupported] = useState(false)
 
   const openLightbox = (src, alt) => {
     if (!src) return
@@ -205,6 +206,25 @@ export default function blogPage({ params }) {
   }
 
   const onThumbLeave = () => setHoverPreview({ visible: false, src: '', top: 0, left: 0, width: 0 })
+
+  // detect hover capability (skip hover previews on touch/mobile)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) {
+      setHoverSupported(false)
+      return
+    }
+    const mq = window.matchMedia('(hover: hover)')
+    const update = () => setHoverSupported(!!mq.matches)
+    update()
+    if (mq.addEventListener) mq.addEventListener('change', update)
+    else mq.addListener(update)
+    return () => {
+      try {
+        if (mq.removeEventListener) mq.removeEventListener('change', update)
+        else mq.removeListener(update)
+      } catch (e) {}
+    }
+  }, [])
 
   // close on Escape
   useEffect(() => {
@@ -452,15 +472,18 @@ export default function blogPage({ params }) {
                       : short
                         ? 'md:col-span-1 md:row-span-1'
                         : 'md:col-span-2 md:row-span-1'
+                  const hoverHandlers = hoverSupported ? {
+                    onMouseEnter: (e) => onThumbHover(g, e, i, blog.title || `Gallery ${i + 1}`),
+                    onMouseLeave: onThumbLeave,
+                    onFocus: (e) => onThumbHover(g, e, i, blog.title || `Gallery ${i + 1}`),
+                    onBlur: onThumbLeave,
+                  } : {}
                   return (
                     <button
                       key={`${g}-${i}`}
                       type="button"
                       onClick={() => openGalleryAt(i)}
-                      onMouseEnter={(e) => onThumbHover(g, e, i, blog.title || `Gallery ${i + 1}`)}
-                      onMouseLeave={onThumbLeave}
-                      onFocus={(e) => onThumbHover(g, e, i, blog.title || `Gallery ${i + 1}`)}
-                      onBlur={onThumbLeave}
+                      {...hoverHandlers}
                       className={`relative block w-full h-full cursor-zoom-in rounded-lg overflow-hidden bg-gray-100 focus:outline-none group ${classes} ring-0 focus:ring-4 focus:ring-amber-200`}
                       aria-label={`Open image ${i + 1}`}
                     >
