@@ -64,6 +64,12 @@ export default function RootLayout({ children }) {
         <Script id="gtag-init" strategy="afterInteractive">
           {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${GA_ID}', { page_path: window.location.pathname });`}
         </Script>
+
+        {/* ✅ Ad / External Script */}
+        <Script
+          src="https://pl28348978.effectivegatecpm.com/7b/a2/b4/7ba2b4d3d4fe4d723ffa453030838cd3.js"
+          strategy="afterInteractive"
+        />
         <div className="min-h-screen flex flex-col">
           <Header />
 
