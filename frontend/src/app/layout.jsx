@@ -70,6 +70,25 @@ export default function RootLayout({ children }) {
           src="https://pl28348978.effectivegatecpm.com/7b/a2/b4/7ba2b4d3d4fe4d723ffa453030838cd3.js"
           strategy="afterInteractive"
         />
+        {/* Ad Config */}
+        <Script id="at-options" strategy="afterInteractive">
+          {`
+               window.atOptions = {
+                 key: '15c23a8c58be739c9d222b4bc8eaa61e',
+                 format: 'iframe',
+                 height: 60,
+                 width: 468,
+                 params: {}
+              };
+          `}
+        </Script>
+
+        {/* Ad Loader */}
+        <Script
+          src="https://www.highperformanceformat.com/15c23a8c58be739c9d222b4bc8eaa61e/invoke.js"
+          strategy="afterInteractive"
+        />
+
         <div className="min-h-screen flex flex-col">
           <Header />
 
