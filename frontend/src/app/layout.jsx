@@ -58,6 +58,9 @@ export default function RootLayout({ children }) {
   const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
   return (
     <html lang="en">
+      <head>
+        <meta name="monetag" content="a0af0df3861fdecfc2ef49ddacba78cd" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {/* Google Analytics */}
         <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
