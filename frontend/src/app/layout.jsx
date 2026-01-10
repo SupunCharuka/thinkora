@@ -68,6 +68,18 @@ export default function RootLayout({ children }) {
           {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${GA_ID}', { page_path: window.location.pathname });`}
         </Script>
 
+        {/* Gizokraijaw vignette script */}
+        <Script id="gizokraijaw" strategy="afterInteractive">
+          {`(function(s){s.dataset.zone='10442857',s.src='https://gizokraijaw.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`}
+        </Script>
+
+        {/* 3nbf4 tag script */}
+        <Script
+          src="https://3nbf4.com/act/files/tag.min.js?z=10442844"
+          strategy="afterInteractive"
+          data-cfasync="false"
+        />
+
         <div className="min-h-screen flex flex-col">
           <Header />
 
