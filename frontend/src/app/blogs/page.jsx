@@ -37,11 +37,15 @@ const parseDateValue = (v) => {
 	return Number.isNaN(d.getTime()) ? null : d;
 };
 
-const isRecent = (date, days = 7) => {
-	if (!date) return false;
+// Number of days considered "recent" when filtering
+const RECENT_DAYS = 30;
+
+const isRecent = (value, days = 7) => {
+	const d = parseDateValue(value);
+	if (!d) return false;
 	const now = Date.now();
 	const ms = days * 24 * 60 * 60 * 1000;
-	return (now - date.getTime()) <= ms;
+	return (now - d.getTime()) <= ms;
 };
 
 
@@ -153,7 +157,7 @@ export default function blogsPage() {
 		// primary Recent filter
 		if (primaryFilter === 'Recent') {
 			const d = parseDateValue(p.createdAt || p.date);
-			if (!d || !isRecent(d, 7)) return false;
+			if (!d || !isRecent(d, RECENT_DAYS)) return false;
 		}
 
 		// category filter
@@ -266,7 +270,7 @@ export default function blogsPage() {
 						if (opt === 'Latest') count = blogs.length;
 						else if (opt === 'Recent') count = blogs.filter(b => {
 							const d = parseDateValue(b.createdAt || b.date);
-							return d && isRecent(d, 7);
+							return d && isRecent(d, RECENT_DAYS);
 						}).length;
 						else if (opt === 'Most viewed') count = blogs.length;
 						const isActive = primaryFilter === opt;
